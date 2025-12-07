@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'pages/login_page.dart';
 import 'pages/menu_page.dart';
 import 'pages/hitung_page.dart';
 import 'pages/kelola_bahan.dart';
@@ -17,6 +18,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: '/menu',
       routes: {
+        '/login': (context) => const LoginPage(),
         '/menu': (context) => const MenuPage(),
         '/hitung': (context) => const HitungPage(),
         '/kelola': (context) => const KelolaBahanPage(),

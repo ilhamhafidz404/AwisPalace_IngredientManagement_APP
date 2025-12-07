@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ingredient_management_app/pages/login_page.dart';
 import 'menu_page.dart';
 import 'kelola_bahan.dart';
 import 'hitung_page.dart';
@@ -103,7 +104,12 @@ class _ProfilePageState extends State<ProfilePage> {
                     fontWeight: FontWeight.w300,
                   ),
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                  );
+                },
               ),
 
               const SizedBox(height: 50),
