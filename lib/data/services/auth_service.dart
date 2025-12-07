@@ -5,7 +5,7 @@ class AuthService {
   static Future<GoogleSignInAccount?> signInWithGoogle() async {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn(
-        clientId: GoogleClientID.webClientId,
+        clientId: GoogleClientID.googleClientId,
         scopes: ["email", "profile"],
       );
 
