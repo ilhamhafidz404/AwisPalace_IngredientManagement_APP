@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ingredient_management_app/features/home/presentation/pages/home_page.dart';
 import 'pages/login_page.dart';
 import 'pages/menu_page.dart';
 import 'pages/hitung_page.dart';
@@ -16,9 +17,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/menu',
+      initialRoute: '/',
       routes: {
         '/login': (context) => const LoginPage(),
+        '/': (context) => const HomePage(),
         '/menu': (context) => const MenuPage(),
         '/hitung': (context) => const HitungPage(),
         '/kelola': (context) => const KelolaBahanPage(),
