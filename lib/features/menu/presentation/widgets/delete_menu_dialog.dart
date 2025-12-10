@@ -18,11 +18,15 @@ class DeleteMenuDialog extends StatelessWidget {
       content: Text("Yakin ingin menghapus \"$menuName\"?"),
       actions: [
         TextButton(
+          style: TextButton.styleFrom(foregroundColor: Colors.grey[700]),
           onPressed: () => Navigator.pop(context),
           child: const Text("Batal"),
         ),
         ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+          ),
           onPressed: onDelete,
           child: const Text("Hapus"),
         ),
