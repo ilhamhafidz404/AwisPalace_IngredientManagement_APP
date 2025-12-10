@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ingredient_management_app/pages/login_page.dart';
-import 'menu_page.dart';
+import '../features/menu/presentation/pages/menu_page.dart';
 import 'kelola_bahan.dart';
 import 'hitung_page.dart';
 

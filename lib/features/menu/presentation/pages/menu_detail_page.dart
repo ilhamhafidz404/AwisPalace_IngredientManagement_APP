@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class DetailMenuPage extends StatelessWidget {
+class MenuDetailPage extends StatelessWidget {
   final String nama;
   final String gambar;
 
-  const DetailMenuPage({super.key, required this.nama, required this.gambar});
+  const MenuDetailPage({super.key, required this.nama, required this.gambar});
 
   @override
   Widget build(BuildContext context) {

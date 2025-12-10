@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'menu_page.dart';
+import '../features/menu/presentation/pages/menu_page.dart';
 import 'profile_page.dart';
 
 class KelolaBahanPage extends StatefulWidget {

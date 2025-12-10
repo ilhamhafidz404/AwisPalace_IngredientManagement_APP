@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ingredient_management_app/features/home/presentation/pages/home_page.dart';
 import 'pages/login_page.dart';
-import 'pages/menu_page.dart';
+import 'features/menu/presentation/pages/menu_page.dart';
 import 'pages/hitung_page.dart';
 import 'pages/kelola_bahan.dart';
 import 'pages/profile_page.dart';

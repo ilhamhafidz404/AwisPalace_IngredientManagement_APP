@@ -20,6 +20,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.white,
 
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: const Color(0xFF00B3E6),
         elevation: 0,
         title: const Text(
@@ -75,7 +76,7 @@ class _HomePageState extends State<HomePage> {
           setState(() => currentIndex = index);
 
           if (index == 0) Navigator.pushNamed(context, '/beranda');
-          if (index == 1) return;
+          if (index == 1) Navigator.pushNamed(context, '/menu');
           if (index == 2) Navigator.pushNamed(context, '/kelola');
           if (index == 3) Navigator.pushNamed(context, '/menu');
           if (index == 4) Navigator.pushNamed(context, '/profile');
