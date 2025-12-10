@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import '../features/menu/presentation/pages/menu_page.dart';
-import 'profile_page.dart';
+import 'package:ingredient_management_app/widgets/custom_bottom_nav.dart';
+import 'package:ingredient_management_app/widgets/custom_bottom_nav_handler.dart';
 
-class KelolaBahanPage extends StatefulWidget {
-  const KelolaBahanPage({super.key});
+class IngredientPage extends StatefulWidget {
+  const IngredientPage({super.key});
 
   @override
-  State<KelolaBahanPage> createState() => _KelolaBahanPageState();
+  State<IngredientPage> createState() => _IngredientPageState();
 }
 
-class _KelolaBahanPageState extends State<KelolaBahanPage> {
-  final int _selectedIndex = 2;
+class _IngredientPageState extends State<IngredientPage> {
+  final int currentIndex = 2;
 
   List<Map<String, dynamic>> bahanList = [
     {"nama": "Masako", "jumlah": 1},
@@ -93,35 +93,12 @@ class _KelolaBahanPageState extends State<KelolaBahanPage> {
     );
   }
 
-  /// =================== NAVIGATION ===================
-  void _onItemTapped(int index) {
-    if (index == _selectedIndex) return;
-
-    switch (index) {
-      case 3:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const MenuPage()),
-        );
-        break;
-      case 4:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const ProfilePage()),
-        );
-        break;
-      default:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Fitur ini belum tersedia.")),
-        );
-    }
-  }
-
   /// ===================== UI ======================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: const Color(0xff00C3FF),
         title: const Text(
           "Kelola Bahan",
@@ -193,23 +170,14 @@ class _KelolaBahanPageState extends State<KelolaBahanPage> {
 
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xff00C3FF),
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.white),
         onPressed: () {},
       ),
 
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        selectedItemColor: Colors.blueAccent,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
-          BottomNavigationBarItem(icon: Icon(Icons.calculate), label: 'Hitung'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Kelola'),
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Menu'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
-        ],
+      bottomNavigationBar: CustomBottomNav(
+        selectedIndex: currentIndex,
+        onItemTapped: (i) =>
+            CustomBottomNavHandler.onItemTapped(context, currentIndex, i),
       ),
     );
   }

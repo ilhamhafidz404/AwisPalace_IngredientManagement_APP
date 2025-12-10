@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ingredient_management_app/pages/login_page.dart';
 import '../features/menu/presentation/pages/menu_page.dart';
-import 'kelola_bahan.dart';
+import '../features/ingredient/presentation/pages/ingredient_page.dart';
 import 'hitung_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -35,7 +35,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (index == 2) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const KelolaBahanPage()),
+        MaterialPageRoute(builder: (context) => const IngredientPage()),
       );
       return;
     }

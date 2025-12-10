@@ -3,6 +3,7 @@ import 'package:ingredient_management_app/features/home/presentation/widgets/ale
 import 'package:ingredient_management_app/features/home/presentation/widgets/ingredient_section.dart';
 import 'package:ingredient_management_app/features/home/presentation/widgets/product_section.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav.dart';
+import 'package:ingredient_management_app/widgets/custom_bottom_nav_handler.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -72,15 +73,8 @@ class _HomePageState extends State<HomePage> {
 
       bottomNavigationBar: CustomBottomNav(
         selectedIndex: currentIndex,
-        onItemTapped: (index) {
-          setState(() => currentIndex = index);
-
-          if (index == 0) Navigator.pushNamed(context, '/beranda');
-          if (index == 1) Navigator.pushNamed(context, '/menu');
-          if (index == 2) Navigator.pushNamed(context, '/kelola');
-          if (index == 3) Navigator.pushNamed(context, '/menu');
-          if (index == 4) Navigator.pushNamed(context, '/profile');
-        },
+        onItemTapped: (i) =>
+            CustomBottomNavHandler.onItemTapped(context, currentIndex, i),
       ),
     );
   }

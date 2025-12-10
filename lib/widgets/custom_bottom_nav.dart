@@ -21,8 +21,8 @@ class CustomBottomNav extends StatelessWidget {
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
         BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Menu'),
+        BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Bahan'),
         BottomNavigationBarItem(icon: Icon(Icons.calculate), label: 'Hitung'),
-        BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Kelola'),
         BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
       ],
     );

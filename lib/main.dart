@@ -3,7 +3,7 @@ import 'package:ingredient_management_app/features/home/presentation/pages/home_
 import 'pages/login_page.dart';
 import 'features/menu/presentation/pages/menu_page.dart';
 import 'pages/hitung_page.dart';
-import 'pages/kelola_bahan.dart';
+import 'features/ingredient/presentation/pages/ingredient_page.dart';
 import 'pages/profile_page.dart';
 
 void main() {
@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => const HomePage(),
         '/menu': (context) => const MenuPage(),
         '/hitung': (context) => const HitungPage(),
-        '/kelola': (context) => const KelolaBahanPage(),
+        '/ingredient': (context) => const IngredientPage(),
         '/profile': (context) => const ProfilePage(),
       },
     );
