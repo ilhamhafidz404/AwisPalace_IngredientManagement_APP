@@ -1,47 +1,52 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
-// --- IMPORT SERVICE ASLI ---
-// Pastikan service-service ini diimpor:
 import 'package:ingredient_management_app/features/ingredient/data/services/ingredient_service.dart';
 import 'package:ingredient_management_app/services/unit_service.dart';
 import '../../data/services/menu_service.dart';
-import '../../data/models/menu_model.dart'; // Mengandung MenuModel dan MenuIngredientModel
+import '../../data/models/menu_model.dart';
+
+// ==================== MODELS ====================
 
 class MasterIngredientModel {
   final int id;
   final String name;
+
   MasterIngredientModel({required this.id, required this.name});
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is MasterIngredientModel &&
           runtimeType == other.runtimeType &&
           id == other.id;
+
   @override
   int get hashCode => id.hashCode;
 }
 
-// Ini mungkin adalah model asli yang dikembalikan oleh UnitService.getUnits()
 class MasterUnitModel {
   final int id;
   final String name;
+
   MasterUnitModel({required this.id, required this.name});
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is MasterUnitModel &&
           runtimeType == other.runtimeType &&
           id == other.id;
+
   @override
   int get hashCode => id.hashCode;
 }
 
-// Ini adalah model form yang harus disesuaikan dengan MasterModel di atas
 class IngredientFormModel {
-  MasterIngredientModel? ingredient; // Diubah ke MasterIngredientModel
+  MasterIngredientModel? ingredient;
   double quantity;
-  MasterUnitModel? unit; // Diubah ke MasterUnitModel
+  MasterUnitModel? unit;
 
   IngredientFormModel({this.ingredient, this.quantity = 0.0, this.unit});
 
@@ -51,12 +56,14 @@ class IngredientFormModel {
     "unit_id": unit?.id ?? 0,
   };
 }
-// End Penyesuaian Model
 
-// Konstanta Styling
+// ==================== CONSTANTS ====================
+
 const Color primaryColor = Color(0xff00C3FF);
 const double defaultPadding = 16.0;
 const double fieldSpacing = 16.0;
+
+// ==================== MAIN PAGE ====================
 
 class MenuFormPage extends StatefulWidget {
   final MenuModel? menu;
@@ -70,20 +77,23 @@ class MenuFormPage extends StatefulWidget {
 class _MenuFormPageState extends State<MenuFormPage> {
   final _formKey = GlobalKey<FormState>();
 
+  // Controllers
   late TextEditingController nameC;
   late TextEditingController priceC;
   late TextEditingController descC;
 
+  // Image
   String? _currentImageUrl;
   XFile? _imageFile;
 
-  /// LIST INGREDIENT DINAMIS (Dipertahankan)
+  // Ingredients
   List<IngredientFormModel> ingredients = [];
 
-  // Data Master untuk Dropdown (Diubah typenya sesuai model yang digunakan untuk form)
+  // Master Data
   List<MasterIngredientModel> masterIngredients = [];
   List<MasterUnitModel> masterUnits = [];
 
+  // States
   bool isLoading = false;
   bool isMasterLoading = true;
 
@@ -92,138 +102,53 @@ class _MenuFormPageState extends State<MenuFormPage> {
   @override
   void initState() {
     super.initState();
+    _initializeControllers();
+    _loadMasterData();
+    _initializeIngredients();
+  }
 
-    _loadMasterData(); // Panggil fungsi load data master
+  @override
+  void dispose() {
+    nameC.dispose();
+    priceC.dispose();
+    descC.dispose();
+    super.dispose();
+  }
 
+  // ==================== INITIALIZATION ====================
+
+  void _initializeControllers() {
     nameC = TextEditingController(text: widget.menu?.name ?? "");
-    _currentImageUrl = widget.menu?.image;
     priceC = TextEditingController(
       text: widget.menu != null ? widget.menu!.price.toString() : "",
     );
     descC = TextEditingController(text: widget.menu?.description ?? "");
+    _currentImageUrl = widget.menu?.image;
+  }
 
-    if (isEdit) {
-      // Perbaiki inisialisasi ingredients agar mengambil data dari MenuModel
+  void _initializeIngredients() {
+    if (isEdit && widget.menu != null) {
       ingredients = widget.menu!.ingredients.map((e) {
-        // e adalah MenuIngredientModel, yang berisi e.ingredient (IngredientForMenuModel)
-        // dan e.unit (UnitForModel). Kita harus memetakannya ke MasterModel.
-
-        // PERHATIAN: Bagian ini bergantung pada bagaimana Anda memetakan model
-        // relasi (IngredientForMenuModel) ke model master (MasterIngredientModel).
-        // Saya akan membuat MasterModel sederhana untuk inisialisasi:
-
-        final MasterIngredientModel? ingredient = MasterIngredientModel(
-          id: e
-              .ingredient
-              .id, // Asumsi e.ingredient adalah IngredientForMenuModel
-          name: e.ingredient.name,
-        );
-
-        final MasterUnitModel? unit = MasterUnitModel(
-          id: e.unit.id, // Asumsi e.unit adalah UnitForModel
-          name: e.unit.name,
-        );
-
         return IngredientFormModel(
-          ingredient: ingredient,
+          ingredient: MasterIngredientModel(
+            id: e.ingredient.id,
+            name: e.ingredient.name,
+          ),
           quantity: e.quantity,
-          unit: unit,
+          unit: MasterUnitModel(id: e.unit.id, name: e.unit.name),
         );
       }).toList();
     }
   }
 
-  // (Di dalam _MenuFormPageState)
+  // ==================== DATA LOADING ====================
 
-  Future<void> submit() async {
-    if (!_formKey.currentState!.validate()) return;
-    // Periksa apakah semua ingredient sudah terisi
-    if (ingredients.any(
-      (i) => i.ingredient == null || i.unit == null || i.quantity <= 0,
-    )) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Pastikan semua Ingredient dan Quantity sudah diisi"),
-        ),
-      );
-      return;
-    }
-
-    setState(() => isLoading = true);
-
-    // 1. Siapkan data ingredients dalam format yang benar (sudah ada di IngredientFormModel.toJson)
-    final ingredientsData = ingredients.map((e) => e.toJson()).toList();
-
-    // 2. Tentukan Image Path/URL yang akan dikirim
-    // CATATAN PENTING: API Go Anda saat ini hanya menerima string (Image string/URL).
-    // Jika Anda ingin upload file, Anda harus memodifikasi API Go Anda menjadi multipart/form-data.
-    // Untuk saat ini, kita ikuti struktur API Anda yang hanya menerima string.
-    final imageString = _currentImageUrl ?? _imageFile?.path ?? "";
-
-    try {
-      if (isEdit) {
-        // LOGIC UNTUK EDIT/UPDATE MENU
-        // Anda harus memanggil updateMenu di sini.
-        final imagePathOrUrl = _imageFile?.path ?? _currentImageUrl;
-        await MenuService.updateMenu(
-          id: widget.menu!.id,
-          name: nameC.text,
-          // image: imagePathOrUrl, // Ganti imageFilePath menjadi image string
-          image: imageString,
-          price: double.parse(priceC.text),
-          description: descC.text,
-          ingredients: ingredientsData,
-        );
-      } else {
-        // LOGIC UNTUK CREATE MENU BARU
-        await MenuService.createMenu(
-          name: nameC.text,
-          image: imageString, // Menggunakan string yang sudah ditentukan
-          price: double.parse(priceC.text),
-          description: descC.text,
-          ingredients: ingredientsData,
-        );
-      }
-
-      Navigator.pop(context, true);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Gagal menyimpan menu: ${e.toString()}")),
-      );
-    } finally {
-      setState(() => isLoading = false);
-    }
-  }
-
-  /// ================= FUNGSI (Memperbaiki error di _loadMasterData) =================
   Future<void> _loadMasterData() async {
-    // NOTE: masterIngredients dan masterUnits di-declare sebagai List<IngredientModel>
-    // dan List<UnitModel> di luar fungsi ini.
-
-    // Asumsi: Service mengembalikan List<IngredientModel> dan List<UnitModel>
-    // yang setara dengan MasterIngredientModel dan MasterUnitModel di sini.
-    // Jika masih terjadi type error, ganti IngredientModel/UnitModel di service
-    // dengan MasterIngredientModel/MasterUnitModel.
-
     try {
-      // PANGGIL SERVICE (menggunakan type yang dikembalikan oleh service)
       final loadedIngredients = await IngredientService.getIngredients();
       final loadedUnits = await UnitService.getUnits();
 
-      // ASSIGNMENT KE STATE (masterIngredients dan masterUnits)
-      // Karena type di sini sudah diubah menjadi MasterIngredientModel dan MasterUnitModel,
-      // ASUMSIKAN service mengembalikan type yang sama.
       setState(() {
-        // HATI-HATI: Jangan menggunakan `List<IngredientModel> masterIngredients`
-        // di dalam try block, karena akan membuat variabel lokal baru yang
-        // menaungi variabel state. Gunakan assignment langsung ke variabel state.
-
-        // Catatan: Jika service mengembalikan type yang berbeda, Anda harus
-        // melakukan mapping, e.g., loadedIngredients.map((i) => MasterIngredientModel.fromService(i)).toList();
-
-        // PENGGANTIAN VARIABEL DI FUNGSI ANDA UNTUK MENGHILANGKAN TYPE CONFLICT
-        // Saya asumsikan loadedIngredients (dari service) adalah type yang sama
-        // dengan MasterIngredientModel (yang digunakan di state).
         masterIngredients = loadedIngredients
             .map((e) => MasterIngredientModel(id: e.id, name: e.name))
             .toList();
@@ -233,17 +158,26 @@ class _MenuFormPageState extends State<MenuFormPage> {
         isMasterLoading = false;
       });
     } catch (e) {
-      // Pastikan variabel state isMasterLoading diakses dan diubah:
       setState(() => isMasterLoading = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Gagal memuat data master: $e")));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Gagal memuat data master: $e")));
+      }
     }
   }
+
+  // ==================== ACTIONS ====================
 
   void addIngredient() {
     setState(() {
       ingredients.add(IngredientFormModel());
+    });
+  }
+
+  void removeIngredient(int index) {
+    setState(() {
+      ingredients.removeAt(index);
     });
   }
 
@@ -258,153 +192,448 @@ class _MenuFormPageState extends State<MenuFormPage> {
     }
   }
 
-  // Future<void> submit() async {
-  //   if (!_formKey.currentState!.validate()) return;
-  //   if (ingredients.any((i) => i.ingredient == null || i.unit == null)) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text("Semua Ingredient harus dipilih")),
-  //     );
-  //     return;
-  //   }
+  // ==================== FORM SUBMISSION ====================
 
-  //   setState(() => isLoading = true);
+  Future<void> submit() async {
+    if (!_formKey.currentState!.validate()) return;
 
-  //   final ingredientsData = ingredients.map((e) => e.toJson()).toList();
+    if (ingredients.isEmpty) {
+      _showSnackBar("Minimal satu ingredient harus ditambahkan");
+      return;
+    }
 
-  //   try {
-  //     // ... Logika submit (tidak diubah)
+    if (ingredients.any(
+      (i) => i.ingredient == null || i.unit == null || i.quantity <= 0,
+    )) {
+      _showSnackBar("Pastikan semua Ingredient dan Quantity sudah diisi");
+      return;
+    }
 
-  //     Navigator.pop(context, true);
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(
-  //       context,
-  //     ).showSnackBar(SnackBar(content: Text(e.toString())));
-  //   } finally {
-  //     setState(() => isLoading = false);
-  //   }
-  // }
+    setState(() => isLoading = true);
 
-  /// ================= UI/TAMPILAN (Tidak diubah, hanya memastikan widget helper berfungsi) =================
+    try {
+      final ingredientsData = ingredients.map((e) => e.toJson()).toList();
+
+      if (isEdit) {
+        // UPDATE MENU
+        if (_imageFile != null) {
+          // Jika ada file gambar baru, gunakan multipart
+          await MenuService.updateMenuWithFile(
+            id: widget.menu!.id,
+            name: nameC.text,
+            imageFile: File(_imageFile!.path),
+            price: double.parse(priceC.text),
+            description: descC.text,
+            ingredients: ingredientsData,
+          );
+        } else {
+          // Jika tidak ada file baru, gunakan URL lama
+          await MenuService.updateMenu(
+            id: widget.menu!.id,
+            name: nameC.text,
+            image: _currentImageUrl ?? "",
+            price: double.parse(priceC.text),
+            description: descC.text,
+            ingredients: ingredientsData,
+          );
+        }
+      } else {
+        // CREATE MENU
+        if (_imageFile != null) {
+          // Jika ada file gambar, gunakan multipart
+          await MenuService.createMenuWithFile(
+            name: nameC.text,
+            imageFile: File(_imageFile!.path),
+            price: double.parse(priceC.text),
+            description: descC.text,
+            ingredients: ingredientsData,
+          );
+        } else {
+          // Jika tidak ada file, error atau gunakan default
+          _showSnackBar("Gambar menu wajib dipilih");
+          setState(() => isLoading = false);
+          return;
+        }
+      }
+
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      _showSnackBar("Gagal menyimpan menu: ${e.toString()}");
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
+  void _showSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  // ==================== BUILD UI ====================
+
   @override
   Widget build(BuildContext context) {
-    // ... (kode build method tetap sama)
     return Scaffold(
       appBar: AppBar(
         title: Text(isEdit ? "Edit Menu" : "Tambah Menu"),
         backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: isMasterLoading
           ? const Center(child: CircularProgressIndicator(color: primaryColor))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(defaultPadding),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Input Utama
-                    _input(nameC, "Nama Menu", icon: Icons.fastfood_outlined),
-                    _imageUploadWidget(),
-                    _input(
-                      priceC,
-                      "Harga",
-                      isNumber: true,
-                      icon: Icons.attach_money,
-                    ),
-                    _input(
-                      descC,
-                      "Deskripsi",
-                      maxLines: 3,
-                      icon: Icons.description_outlined,
-                    ),
-
-                    const SizedBox(height: fieldSpacing * 1.5),
-
-                    // HEADER INGREDIENTS
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Daftar Bahan Baku (Ingredients)",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          Tooltip(
-                            message: "Tambah Ingredient",
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.add_circle,
-                                color: primaryColor,
-                                size: 30,
-                              ),
-                              onPressed: addIngredient,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Divider(height: 1, color: Colors.grey),
-                    const SizedBox(height: fieldSpacing / 2),
-
-                    /// LIST INGREDIENTS DENGAN TAMPILAN BARU
-                    if (ingredients.isEmpty)
-                      const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(20.0),
-                          child: Text(
-                            "Tekan '+' untuk menambahkan bahan.",
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ),
-                      ),
-
-                    ...ingredients.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final item = entry.value;
-
-                      return _ingredientCard(index, item);
-                    }).toList(),
-
-                    const SizedBox(height: 30),
-
-                    // TOMBOL SIMPAN
-                    ElevatedButton(
-                      onPressed: isLoading ? null : submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        minimumSize: const Size(double.infinity, 55),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        elevation: 5,
-                      ),
-                      child: Text(
-                        isLoading ? "Menyimpan..." : "Simpan Menu",
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          : _buildForm(),
     );
   }
 
-  // ... (Widget Helper _input, _imageUploadWidget, _dropdownInput, _numberInput, _ingredientCard tetap sama,
-  // tetapi kini menggunakan MasterIngredientModel dan MasterUnitModel)
+  Widget _buildForm() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(defaultPadding),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildBasicInfo(),
+            const SizedBox(height: fieldSpacing * 1.5),
+            _buildIngredientsSection(),
+            const SizedBox(height: 30),
+            _buildSubmitButton(),
+          ],
+        ),
+      ),
+    );
+  }
 
-  // Widget Dropdown Reusable yang diperbarui
-  Widget _dropdownInput<T>({
+  Widget _buildBasicInfo() {
+    return Column(
+      children: [
+        _buildTextField(
+          controller: nameC,
+          label: "Nama Menu",
+          icon: Icons.fastfood_outlined,
+        ),
+        _buildImageUploadWidget(),
+        _buildTextField(
+          controller: priceC,
+          label: "Harga",
+          icon: Icons.attach_money,
+          isNumber: true,
+        ),
+        _buildTextField(
+          controller: descC,
+          label: "Deskripsi",
+          icon: Icons.description_outlined,
+          maxLines: 3,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIngredientsSection() {
+    return Column(
+      children: [
+        _buildIngredientsHeader(),
+        const Divider(height: 1, color: Colors.grey),
+        const SizedBox(height: fieldSpacing / 2),
+        _buildIngredientsList(),
+      ],
+    );
+  }
+
+  Widget _buildIngredientsHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            "Daftar Bahan Baku (Ingredients)",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          Tooltip(
+            message: "Tambah Ingredient",
+            child: IconButton(
+              icon: const Icon(Icons.add_circle, color: primaryColor, size: 30),
+              onPressed: addIngredient,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIngredientsList() {
+    if (ingredients.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Text(
+            "Tekan '+' untuk menambahkan bahan.",
+            style: TextStyle(color: Colors.grey),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: ingredients.asMap().entries.map((entry) {
+        return _buildIngredientCard(entry.key, entry.value);
+      }).toList(),
+    );
+  }
+
+  // ==================== WIDGET BUILDERS ====================
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    IconData? icon,
+    bool isNumber = false,
+    int maxLines = 1,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: fieldSpacing),
+      child: TextFormField(
+        controller: controller,
+        maxLines: maxLines,
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        validator: (v) => v == null || v.isEmpty ? "$label wajib diisi" : null,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: primaryColor, width: 2),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageUploadWidget() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: fieldSpacing),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Gambar Menu",
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 8),
+          _buildImagePreview(),
+          const SizedBox(height: 10),
+          _buildUploadButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImagePreview() {
+    return Container(
+      height: 150,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black26),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: _getImageWidget(),
+    );
+  }
+
+  Widget _getImageWidget() {
+    if (_imageFile != null) {
+      return _buildImageWithCheck(_imageFile!.path);
+    }
+
+    if (_currentImageUrl != null && _currentImageUrl!.isNotEmpty) {
+      return _buildNetworkImage(_currentImageUrl!);
+    }
+
+    return _buildPlaceholder();
+  }
+
+  Widget _buildImageWithCheck(String path) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.network(
+            path,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => const Icon(
+              Icons.insert_drive_file,
+              size: 50,
+              color: Colors.lightGreen,
+            ),
+          ),
+          const Positioned(
+            bottom: 4,
+            right: 4,
+            child: Icon(Icons.check_circle, color: Colors.green, size: 24),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNetworkImage(String url) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.network(
+        url,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return const Center(
+            child: CircularProgressIndicator(color: primaryColor),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) => const Center(
+          child: Icon(
+            Icons.image_not_supported,
+            size: 50,
+            color: Colors.redAccent,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.image, size: 40, color: Colors.grey),
+          Text("Pilih Gambar Menu", style: TextStyle(color: Colors.grey)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUploadButton() {
+    return ElevatedButton.icon(
+      onPressed: _pickImage,
+      icon: const Icon(Icons.cloud_upload_outlined, color: Colors.white),
+      label: Text(
+        _imageFile != null ? "Ganti Gambar" : "Upload Gambar",
+        style: const TextStyle(color: Colors.white),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primaryColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  Widget _buildIngredientCard(int index, IngredientFormModel item) {
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.only(bottom: fieldSpacing),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(defaultPadding),
+        child: Column(
+          children: [
+            _buildIngredientCardHeader(index),
+            const Divider(),
+            _buildIngredientDropdown(index, item),
+            _buildQuantityInput(index, item),
+            _buildUnitDropdown(index, item),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIngredientCardHeader(int index) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          "Bahan #${index + 1}",
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: primaryColor,
+          ),
+        ),
+        Tooltip(
+          message: "Hapus Ingredient",
+          child: IconButton(
+            icon: const Icon(Icons.delete_forever, color: Colors.red),
+            onPressed: () => removeIngredient(index),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIngredientDropdown(int index, IngredientFormModel item) {
+    return _buildDropdown<MasterIngredientModel>(
+      label: "Bahan Baku",
+      value: item.ingredient,
+      items: masterIngredients,
+      onChanged: (value) {
+        setState(() => ingredients[index].ingredient = value);
+      },
+      itemBuilder: (i) => i.name,
+      icon: Icons.kitchen,
+    );
+  }
+
+  Widget _buildQuantityInput(int index, IngredientFormModel item) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: fieldSpacing / 2),
+      child: TextFormField(
+        initialValue: item.quantity.toString(),
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(
+          labelText: "Jumlah",
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: primaryColor, width: 2),
+          ),
+        ),
+        validator: (v) {
+          if (v == null || v.isEmpty) return "Jumlah wajib diisi";
+          if (double.tryParse(v) == null) return "Jumlah harus angka";
+          if (double.parse(v) <= 0) return "Jumlah harus lebih dari 0";
+          return null;
+        },
+        onChanged: (v) {
+          ingredients[index].quantity = double.tryParse(v) ?? 0.0;
+        },
+      ),
+    );
+  }
+
+  Widget _buildUnitDropdown(int index, IngredientFormModel item) {
+    return _buildDropdown<MasterUnitModel>(
+      label: "Satuan",
+      value: item.unit,
+      items: masterUnits,
+      onChanged: (value) {
+        setState(() => ingredients[index].unit = value);
+      },
+      itemBuilder: (u) => u.name,
+      icon: Icons.straighten,
+    );
+  }
+
+  Widget _buildDropdown<T>({
     required String label,
     required T? value,
     required List<T> items,
@@ -412,14 +641,12 @@ class _MenuFormPageState extends State<MenuFormPage> {
     required String Function(T) itemBuilder,
     required IconData icon,
   }) {
-    // ... (Implementation tetap sama)
     return Padding(
       padding: const EdgeInsets.only(bottom: fieldSpacing / 2),
       child: DropdownButtonFormField<T>(
         value: value,
         decoration: InputDecoration(
           labelText: label,
-          // prefixIcon: Icon(icon, color: primaryColor),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
@@ -443,229 +670,22 @@ class _MenuFormPageState extends State<MenuFormPage> {
     );
   }
 
-  // Widget Card Ingredient yang diperbarui
-  Widget _ingredientCard(int index, IngredientFormModel item) {
-    return Card(
-      elevation: 3,
-      margin: const EdgeInsets.only(bottom: fieldSpacing),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(defaultPadding),
-        child: Column(
-          children: [
-            // Header Ingredient Card
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Bahan #$index",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: primaryColor,
-                  ),
-                ),
-                Tooltip(
-                  message: "Hapus Ingredient",
-                  child: IconButton(
-                    icon: const Icon(Icons.delete_forever, color: Colors.red),
-                    onPressed: () =>
-                        setState(() => ingredients.removeAt(index)),
-                  ),
-                ),
-              ],
-            ),
-            const Divider(),
-
-            // Dropdown untuk Ingredient
-            _dropdownInput<MasterIngredientModel>(
-                  label: "Bahan Baku",
-                  value: item.ingredient,
-                  items: masterIngredients,
-                  onChanged: (MasterIngredientModel? newValue) {
-                    setState(() => ingredients[index].ingredient = newValue);
-                  },
-                  itemBuilder: (i) => i.name,
-                  icon: Icons.kitchen,
-                )
-                as Widget, // Casting diperlukan karena T di _dropdownInput tidak diketahui
-            // Input Quantity
-            _numberInput(
-              "Jumlah",
-              item.quantity.toString(),
-              (v) => ingredients[index].quantity = double.tryParse(v) ?? 0.0,
-            ),
-
-            // Dropdown untuk Unit
-            _dropdownInput<MasterUnitModel>(
-                  label: "Satuan",
-                  value: item.unit,
-                  items: masterUnits,
-                  onChanged: (MasterUnitModel? newValue) {
-                    setState(() => ingredients[index].unit = newValue);
-                  },
-                  itemBuilder: (u) => u.name,
-                  icon: Icons.straighten,
-                )
-                as Widget, // Casting diperlukan
-          ],
-        ),
+  Widget _buildSubmitButton() {
+    return ElevatedButton(
+      onPressed: isLoading ? null : submit,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primaryColor,
+        minimumSize: const Size(double.infinity, 55),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        elevation: 5,
       ),
-    );
-  }
-
-  // (Widget helper lainnya)
-  Widget _input(
-    TextEditingController c,
-    String label, {
-    bool isNumber = false,
-    int maxLines = 1,
-    IconData? icon,
-  }) {
-    /* ... */
-    return Padding(
-      padding: const EdgeInsets.only(bottom: fieldSpacing),
-      child: TextFormField(
-        controller: c,
-        maxLines: maxLines,
-        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-        validator: (v) => v == null || v.isEmpty ? "$label wajib diisi" : null,
-        decoration: InputDecoration(
-          labelText: label,
-          // prefixIcon: icon != null ? Icon(icon, color: primaryColor) : null,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: primaryColor, width: 2),
-          ),
+      child: Text(
+        isLoading ? "Menyimpan..." : "Simpan Menu",
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
-      ),
-    );
-  }
-
-  Widget _imageUploadWidget() {
-    /* ... */
-    return Padding(
-      padding: const EdgeInsets.only(bottom: fieldSpacing),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Gambar Menu",
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            height: 150,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black26),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: _imageFile != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.network(
-                          _imageFile!.path,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(
-                                Icons.insert_drive_file,
-                                size: 50,
-                                color: Colors.lightGreen,
-                              ),
-                          fit: BoxFit.cover,
-                        ),
-                        const Positioned(
-                          bottom: 4,
-                          right: 4,
-                          child: Icon(
-                            Icons.check_circle,
-                            color: Colors.green,
-                            size: 24,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : _currentImageUrl != null && _currentImageUrl!.isNotEmpty
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      _currentImageUrl!,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return const Center(
-                          child: CircularProgressIndicator(color: primaryColor),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Center(
-                            child: Icon(
-                              Icons.image_not_supported,
-                              size: 50,
-                              color: Colors.redAccent,
-                            ),
-                          ),
-                    ),
-                  )
-                : const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.image, size: 40, color: Colors.grey),
-                        Text(
-                          "Pilih Gambar Menu",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton.icon(
-            onPressed: _pickImage,
-            icon: const Icon(Icons.cloud_upload_outlined, color: Colors.white),
-            label: Text(
-              _imageFile != null ? "Ganti Gambar" : "Upload Gambar",
-              style: const TextStyle(color: Colors.white),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _numberInput(String label, String value, Function(String) onChanged) {
-    /* ... */
-    return Padding(
-      padding: const EdgeInsets.only(bottom: fieldSpacing / 2),
-      child: TextFormField(
-        initialValue: value,
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(
-          labelText: label,
-          // prefixIcon: const Icon(Icons.numbers, color: primaryColor),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: primaryColor, width: 2),
-          ),
-        ),
-        validator: (v) {
-          if (v == null || v.isEmpty) return "$label wajib diisi";
-          if (double.tryParse(v) == null) return "$label harus angka";
-          return null;
-        },
-        onChanged: onChanged,
       ),
     );
   }

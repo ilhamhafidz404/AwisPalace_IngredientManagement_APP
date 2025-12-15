@@ -1,43 +1,90 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../models/menu_model.dart';
 
 class MenuService {
   static const String baseUrl = "http://alope.site:8080";
 
-  /// =========================
-  /// GET ALL MENUS
-  /// =========================
+  // ==================== FETCH METHODS ====================
+
+  /// Get all menus
   static Future<List<MenuModel>> fetchMenus() async {
-    final response = await http.get(Uri.parse("$baseUrl/menus/"));
+    try {
+      final response = await http.get(Uri.parse("$baseUrl/menus/"));
 
-    if (response.statusCode == 200) {
-      final decoded = jsonDecode(response.body);
-      final List data = decoded['data'];
-
-      return data.map((e) => MenuModel.fromJson(e)).toList();
-    } else {
-      throw Exception("Failed to load menus");
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        final List data = decoded['data'] ?? [];
+        return data.map((e) => MenuModel.fromJson(e)).toList();
+      } else {
+        throw _handleError(response, "Failed to load menus");
+      }
+    } catch (e) {
+      throw Exception("Error fetching menus: $e");
     }
   }
 
-  /// =========================
-  /// GET MENU BY ID
-  /// =========================
+  /// Get menu by ID
   static Future<MenuModel> fetchMenuById(int id) async {
-    final response = await http.get(Uri.parse("$baseUrl/menus/$id"));
+    try {
+      final response = await http.get(Uri.parse("$baseUrl/menus/$id"));
 
-    if (response.statusCode == 200) {
-      final decoded = jsonDecode(response.body);
-      return MenuModel.fromJson(decoded['data']);
-    } else {
-      throw Exception("Failed to load menu detail");
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        return MenuModel.fromJson(decoded['data']);
+      } else {
+        throw _handleError(response, "Failed to load menu detail");
+      }
+    } catch (e) {
+      throw Exception("Error fetching menu detail: $e");
     }
   }
 
-  /// =========================
-  /// CREATE MENU
-  /// =========================
+  // ==================== CREATE METHOD WITH FILE ====================
+
+  /// Create new menu with image file
+  static Future<void> createMenuWithFile({
+    required String name,
+    required File imageFile,
+    required double price,
+    required String description,
+    required List<Map<String, dynamic>> ingredients,
+  }) async {
+    try {
+      final uri = Uri.parse("$baseUrl/menus/");
+      var request = http.MultipartRequest('POST', uri);
+
+      // Add text fields
+      request.fields['name'] = name;
+      request.fields['price'] = price.toString();
+      request.fields['description'] = description;
+      request.fields['ingredients'] = jsonEncode(ingredients);
+
+      // Add image file
+      var stream = http.ByteStream(imageFile.openRead());
+      var length = await imageFile.length();
+      var multipartFile = http.MultipartFile(
+        'image',
+        stream,
+        length,
+        filename: imageFile.path.split('/').last,
+      );
+      request.files.add(multipartFile);
+
+      // Send request
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode != 201) {
+        throw _handleError(response, "Failed to create menu");
+      }
+    } catch (e) {
+      throw Exception("Error creating menu: $e");
+    }
+  }
+
+  /// Create new menu with image URL/path (fallback)
   static Future<void> createMenu({
     required String name,
     required String image,
@@ -45,76 +92,132 @@ class MenuService {
     required String description,
     required List<Map<String, dynamic>> ingredients,
   }) async {
-    final url = Uri.parse("$baseUrl/menus");
-
-    // Buat Payload
-    final payload = MenuCreatePayload(
-      name: name,
-      description: description,
-      image: image,
-      price: price,
-      ingredients: ingredients,
-    );
-
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(payload.toJson()), // Mengirim data sebagai JSON
+      final payload = MenuCreatePayload(
+        name: name,
+        description: description,
+        image: image,
+        price: price,
+        ingredients: ingredients,
       );
 
-      if (response.statusCode == 201) {
-        // HTTP Status 201 Created (sesuai API Go Anda)
-        return;
-      } else {
-        final errorBody = jsonDecode(response.body);
-        throw Exception(
-          "Gagal membuat menu: ${errorBody['message'] ?? response.reasonPhrase}",
-        );
+      final response = await http.post(
+        Uri.parse("$baseUrl/menus/"),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload.toJson()),
+      );
+
+      if (response.statusCode != 201) {
+        throw _handleError(response, "Failed to create menu");
       }
     } catch (e) {
-      throw Exception("Kesalahan koneksi saat membuat menu: $e");
+      throw Exception("Error creating menu: $e");
     }
   }
 
-  /// =========================
-  /// UPDATE MENU
-  /// =========================
+  // ==================== UPDATE METHOD WITH FILE ====================
+
+  /// Update existing menu with image file
+  static Future<void> updateMenuWithFile({
+    required int id,
+    required String name,
+    required File? imageFile, // Nullable karena bisa tidak diganti
+    required double price,
+    required String description,
+    required List<Map<String, dynamic>> ingredients,
+  }) async {
+    try {
+      final uri = Uri.parse("$baseUrl/menus/$id");
+      var request = http.MultipartRequest('PUT', uri);
+
+      // Add text fields
+      request.fields['name'] = name;
+      request.fields['price'] = price.toString();
+      request.fields['description'] = description;
+      request.fields['ingredients'] = jsonEncode(ingredients);
+
+      // Add image file if provided
+      if (imageFile != null) {
+        var stream = http.ByteStream(imageFile.openRead());
+        var length = await imageFile.length();
+        var multipartFile = http.MultipartFile(
+          'image',
+          stream,
+          length,
+          filename: imageFile.path.split('/').last,
+        );
+        request.files.add(multipartFile);
+      }
+
+      // Send request
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode != 200) {
+        throw _handleError(response, "Failed to update menu");
+      }
+    } catch (e) {
+      throw Exception("Error updating menu: $e");
+    }
+  }
+
+  /// Update existing menu with image URL/path (fallback)
   static Future<void> updateMenu({
     required int id,
     required String name,
     required String image,
     required double price,
-    String? description,
+    required String description,
     required List<Map<String, dynamic>> ingredients,
   }) async {
-    final body = {
-      "name": name,
-      "image": image,
-      "price": price,
-      "description": description,
-      "ingredients": ingredients,
-    };
+    try {
+      final payload = {
+        "name": name,
+        "image": image,
+        "price": price,
+        "description": description,
+        "ingredients": ingredients,
+      };
 
-    final response = await http.put(
-      Uri.parse("$baseUrl/menus/$id"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(body),
-    );
+      final response = await http.put(
+        Uri.parse("$baseUrl/menus/$id"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(payload),
+      );
 
-    if (response.statusCode != 200) {
-      throw Exception("Failed to update menu");
+      if (response.statusCode != 200) {
+        throw _handleError(response, "Failed to update menu");
+      }
+    } catch (e) {
+      throw Exception("Error updating menu: $e");
     }
   }
 
-  /// =========================
-  /// DELETE MENU
-  /// =========================
-  static Future<void> deleteMenu(int id) async {
-    final response = await http.delete(Uri.parse("$baseUrl/menus/$id"));
+  // ==================== DELETE METHOD ====================
 
-    if (response.statusCode != 200) {
-      throw Exception("Failed to delete menu");
+  /// Delete menu by ID
+  static Future<void> deleteMenu(int id) async {
+    try {
+      final response = await http.delete(Uri.parse("$baseUrl/menus/$id"));
+
+      if (response.statusCode != 200) {
+        throw _handleError(response, "Failed to delete menu");
+      }
+    } catch (e) {
+      throw Exception("Error deleting menu: $e");
+    }
+  }
+
+  // ==================== HELPER METHODS ====================
+
+  /// Handle error response from API
+  static Exception _handleError(http.Response response, String defaultMessage) {
+    try {
+      final errorBody = jsonDecode(response.body);
+      final message = errorBody['message'] ?? defaultMessage;
+      return Exception("$message (Status: ${response.statusCode})");
+    } catch (_) {
+      return Exception("$defaultMessage (Status: ${response.statusCode})");
     }
   }
 }
