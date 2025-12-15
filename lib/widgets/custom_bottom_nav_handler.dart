@@ -15,7 +15,7 @@ class CustomBottomNavHandler {
         Navigator.pushReplacementNamed(context, '/ingredient');
         break;
       case 3:
-        Navigator.pushReplacementNamed(context, '/menu');
+        Navigator.pushReplacementNamed(context, '/transaction');
         break;
       case 4:
         Navigator.pushReplacementNamed(context, '/profile');

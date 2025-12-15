@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ingredient_management_app/features/home/presentation/pages/home_page.dart';
+import 'package:ingredient_management_app/features/transaction/presentation/pages/transaction_page.dart';
 import 'pages/login_page.dart';
 import 'features/menu/presentation/pages/menu_page.dart';
-import 'pages/hitung_page.dart';
 import 'features/ingredient/presentation/pages/ingredient_page.dart';
 import 'pages/profile_page.dart';
 
@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/': (context) => const HomePage(),
         '/menu': (context) => const MenuPage(),
-        '/hitung': (context) => const HitungPage(),
+        '/transaction': (context) => const TransactionPage(),
         '/ingredient': (context) => const IngredientPage(),
         '/profile': (context) => const ProfilePage(),
       },
