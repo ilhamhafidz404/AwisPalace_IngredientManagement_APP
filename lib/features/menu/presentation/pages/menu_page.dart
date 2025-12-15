@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:ingredient_management_app/features/menu/data/models/menu_model.dart';
+import 'package:ingredient_management_app/features/menu/data/services/menu_service.dart';
+import 'package:ingredient_management_app/features/menu/presentation/pages/menu_form_page.dart';
 import 'package:ingredient_management_app/features/menu/presentation/widgets/delete_menu_dialog.dart';
-import 'package:ingredient_management_app/features/menu/presentation/widgets/edit_menu_dialog.dart';
 import 'package:ingredient_management_app/features/menu/presentation/widgets/menu_card.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav_handler.dart';
 import '../../../../widgets/custom_bottom_nav.dart';
@@ -14,68 +16,70 @@ class MenuPage extends StatefulWidget {
 
 class _MenuPageState extends State<MenuPage> {
   final int _selectedIndex = 1;
+  late Future<List<MenuModel>> menusFuture;
 
-  List<Map<String, String>> menuItems = [
-    {
-      'nama': 'Nasi Goreng',
-      'stok': '3 porsi',
-      'gambar': 'assets/img/nasigoreng.png',
-    },
-    {
-      'nama': 'Mie Goreng',
-      'stok': '2 porsi',
-      'gambar': 'assets/img/nasigoreng.png',
-    },
-    {
-      'nama': 'Sate Ayam',
-      'stok': '4 porsi',
-      'gambar': 'assets/img/nasigoreng.png',
-    },
-  ];
-
-  /// ===================== FUNGSI EDIT ==========================
-
-  void editMenu(int index) {
-    TextEditingController namaC = TextEditingController(
-      text: menuItems[index]['nama'],
-    );
-    TextEditingController stokC = TextEditingController(
-      text: menuItems[index]['stok'],
-    );
-
-    showDialog(
-      context: context,
-      builder: (_) => EditMenuDialog(
-        namaC: namaC,
-        stokC: stokC,
-        onSave: () {
-          setState(() {
-            menuItems[index]['nama'] = namaC.text;
-            menuItems[index]['stok'] = stokC.text;
-          });
-          Navigator.pop(context);
-        },
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _loadMenus();
   }
 
-  /// ===================== FUNGSI HAPUS ==========================
+  void _loadMenus() {
+    menusFuture = MenuService.fetchMenus();
+  }
 
-  void deleteMenu(int index) {
-    showDialog(
+  /// ===================== DELETE MENU ==========================
+  void actionDeleteMenu(MenuModel menu) async {
+    // 1. Tampilkan dialog konfirmasi
+    final confirm = await showDialog<bool>(
       context: context,
+      barrierDismissible: false,
+      // Panggil DeleteMenuDialog, DIALOG AKAN MENGEMBALIKAN TRUE/FALSE
       builder: (_) => DeleteMenuDialog(
-        menuName: menuItems[index]['nama']!,
-        onDelete: () {
-          setState(() => menuItems.removeAt(index));
-          Navigator.pop(context);
-        },
+        menuName: menu.name,
+        // Hapus property onDelete (jika dialog Anda sudah dimodifikasi untuk mengembalikan bool)
+        // Jika Anda TIDAK BISA memodifikasi DeleteMenuDialog, Anda harus memodifikasi kode di bawah ini
       ),
     );
+
+    // User batal atau menutup dialog (confirm akan bernilai null atau false)
+    if (confirm != true) return;
+
+    try {
+      // Logic penghapusan hanya berjalan jika confirm == true
+
+      print("DELETE MENU START: ${menu.name}");
+
+      // 2. Panggil MenuService untuk menghapus menu
+      await MenuService.deleteMenu(menu.id);
+
+      print("DELETE MENU DONE");
+
+      // 3. Update daftar menu setelah penghapusan berhasil
+      setState(() {
+        _loadMenus();
+      });
+
+      // 4. Tampilkan notifikasi sukses
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Menu '${menu.name}' berhasil dihapus"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      // 5. Tampilkan notifikasi error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Gagal menghapus menu: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+    // Tidak perlu 'finally' karena tidak ada 'isLoading'
   }
 
   /// ========================== UI ==============================
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,25 +89,64 @@ class _MenuPageState extends State<MenuPage> {
         title: const Text("Kelola Menu", style: TextStyle(color: Colors.white)),
       ),
 
-      body: ListView.builder(
-        padding: const EdgeInsets.all(12),
-        itemCount: menuItems.length,
-        itemBuilder: (context, index) {
-          final item = menuItems[index];
+      body: FutureBuilder<List<MenuModel>>(
+        future: menusFuture,
+        builder: (context, snapshot) {
+          // Loading
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-          return MenuCard(
-            nama: item['nama']!,
-            stok: item['stok']!,
-            gambar: item['gambar']!,
-            onEdit: () => editMenu(index),
-            onDelete: () => deleteMenu(index),
+          // Error
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                "Gagal memuat menu\n${snapshot.error}",
+                textAlign: TextAlign.center,
+              ),
+            );
+          }
+
+          final menus = snapshot.data!;
+
+          if (menus.isEmpty) {
+            return const Center(child: Text("Menu masih kosong"));
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: menus.length,
+            itemBuilder: (context, index) {
+              final menu = menus[index];
+
+              return MenuCard(
+                nama: menu.name,
+                stok: "Rp ${menu.price.toStringAsFixed(0)}",
+                gambar: "assets/img/nasigoreng.png", // sementara
+                onEdit: () {
+                  // TODO: arahkan ke halaman edit
+                },
+                onDelete: () => actionDeleteMenu(menu),
+              );
+            },
           );
         },
       ),
 
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xff00C3FF),
-        onPressed: () {},
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const MenuFormPage()),
+          );
+
+          if (result == true) {
+            setState(() {
+              _loadMenus(); // reload menu
+            });
+          }
+        },
         child: const Icon(Icons.add, color: Colors.white),
       ),
 

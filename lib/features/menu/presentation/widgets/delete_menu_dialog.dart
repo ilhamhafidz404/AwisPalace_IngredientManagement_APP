@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 class DeleteMenuDialog extends StatelessWidget {
   final String menuName;
-  final VoidCallback onDelete;
+  // Hapus: final VoidCallback onDelete; // Tidak diperlukan lagi
 
   const DeleteMenuDialog({
     super.key,
     required this.menuName,
-    required this.onDelete,
+    // Hapus: required this.onDelete, // Tidak diperlukan lagi
   });
 
   @override
@@ -17,17 +17,23 @@ class DeleteMenuDialog extends StatelessWidget {
       title: const Text("Hapus Menu?"),
       content: Text("Yakin ingin menghapus \"$menuName\"?"),
       actions: [
+        // Tombol Batal
         TextButton(
           style: TextButton.styleFrom(foregroundColor: Colors.grey[700]),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () =>
+              Navigator.pop(context, false), // <--- MENGEMBALIKAN FALSE
           child: const Text("Batal"),
         ),
+
+        // Tombol Hapus (Konfirmasi)
         ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.red,
             foregroundColor: Colors.white,
           ),
-          onPressed: onDelete,
+          // Aksi: Mengembalikan TRUE untuk mengonfirmasi penghapusan
+          onPressed: () =>
+              Navigator.pop(context, true), // <--- MENGEMBALIKAN TRUE
           child: const Text("Hapus"),
         ),
       ],
