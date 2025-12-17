@@ -74,9 +74,7 @@ class _IngredientPageState extends State<IngredientPage> {
     if (confirm != true) return;
 
     try {
-      print("DELETE START");
       await IngredientService.deleteIngredient(item.id);
-      print("DELETE DONE");
 
       setState(() {
         ingredientFuture = IngredientService.getIngredients();
@@ -154,20 +152,19 @@ class _IngredientPageState extends State<IngredientPage> {
                     vertical: 10,
                   ),
 
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      width: 50,
-                      height: 50,
-                      color: Colors.grey.shade300,
-                      child: const Icon(
-                        Icons.inventory,
-                        size: 30,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-
+                  // leading: ClipRRect(
+                  //   borderRadius: BorderRadius.circular(10),
+                  //   child: Container(
+                  //     width: 50,
+                  //     height: 50,
+                  //     color: Colors.grey.shade300,
+                  //     child: const Icon(
+                  //       Icons.inventory,
+                  //       size: 30,
+                  //       color: Colors.black54,
+                  //     ),
+                  //   ),
+                  // ),
                   title: Text(
                     item.name,
                     style: const TextStyle(

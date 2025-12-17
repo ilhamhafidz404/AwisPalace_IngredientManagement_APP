@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:ingredient_management_app/features/home/data/services/home_service.dart';
-import 'package:ingredient_management_app/features/home/presentation/widgets/alert.dart';
+// import 'package:ingredient_management_app/features/home/presentation/widgets/alert.dart';
 import 'package:ingredient_management_app/features/home/presentation/widgets/ingredient_section.dart';
 import 'package:ingredient_management_app/features/home/presentation/widgets/product_section.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav.dart';
@@ -41,20 +41,20 @@ class _HomePageState extends State<HomePage> {
           "Dashboard",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: () {
-              setState(() {
-                _loadDashboard();
-              });
-            },
-          ),
-          const Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.search, color: Colors.white, size: 28),
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.refresh, color: Colors.white),
+        //     onPressed: () {
+        //       setState(() {
+        //         _loadDashboard();
+        //       });
+        //     },
+        //   ),
+        //   const Padding(
+        //     padding: EdgeInsets.only(right: 16),
+        //     child: Icon(Icons.search, color: Colors.white, size: 28),
+        //   ),
+        // ],
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: dashboardFuture,

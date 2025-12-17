@@ -35,7 +35,8 @@ class _ProductSectionState extends State<ProductSection> {
           itemBuilder: (context, index) {
             final item = visibleProducts[index];
             return ProductCard(
-              imagePath: "assets/img/nasigoreng.png", // Default image
+              imagePath:
+                  "http://alope.site:8080/uploads/${item["image"]}", // Default image
               title: item['name'],
               subtitle: "Tersedia: ${item['quantity']} Porsi",
             );

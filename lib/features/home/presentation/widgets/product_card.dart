@@ -19,9 +19,7 @@ class ProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        constraints: const BoxConstraints(
-          maxHeight: 300, // 🔥 maksimal tinggi card
-        ),
+        constraints: const BoxConstraints(maxHeight: 300),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -30,17 +28,35 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🔥 Gambar otomatis mengikuti lebar card
             ClipRRect(
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(12),
               ),
               child: AspectRatio(
                 aspectRatio: 1.5,
-                // Bisa diatur 1.5 = landscape, 1 = square, 0.8 = portrait
-                child: Image.asset(
+                child: Image.network(
                   imagePath,
-                  fit: BoxFit.cover, // 🔥 gambar selalu memenuhi card
+                  width: 100,
+                  height: 150,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return const SizedBox(
+                      width: 100,
+                      height: 150,
+                      child: Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: 100,
+                      height: 150,
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.broken_image, size: 40),
+                    );
+                  },
                 ),
               ),
             ),

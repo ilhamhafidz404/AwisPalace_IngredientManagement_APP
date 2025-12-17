@@ -41,9 +41,9 @@ class MenuService {
     }
   }
 
-  // ==================== CREATE METHOD WITH FILE ====================
+  // ==================== CREATE METHOD ====================
 
-  /// Create new menu with image file
+  /// Create new menu with image file (REQUIRED)
   static Future<void> createMenuWithFile({
     required String name,
     required File imageFile,
@@ -52,7 +52,7 @@ class MenuService {
     required List<Map<String, dynamic>> ingredients,
   }) async {
     try {
-      final uri = Uri.parse("$baseUrl/menus/");
+      final uri = Uri.parse("$baseUrl/menus");
       var request = http.MultipartRequest('POST', uri);
 
       // Add text fields
@@ -84,44 +84,13 @@ class MenuService {
     }
   }
 
-  /// Create new menu with image URL/path (fallback)
-  static Future<void> createMenu({
-    required String name,
-    required String image,
-    required double price,
-    required String description,
-    required List<Map<String, dynamic>> ingredients,
-  }) async {
-    try {
-      final payload = MenuCreatePayload(
-        name: name,
-        description: description,
-        image: image,
-        price: price,
-        ingredients: ingredients,
-      );
+  // ==================== UPDATE METHOD ====================
 
-      final response = await http.post(
-        Uri.parse("$baseUrl/menus/"),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(payload.toJson()),
-      );
-
-      if (response.statusCode != 201) {
-        throw _handleError(response, "Failed to create menu");
-      }
-    } catch (e) {
-      throw Exception("Error creating menu: $e");
-    }
-  }
-
-  // ==================== UPDATE METHOD WITH FILE ====================
-
-  /// Update existing menu with image file
+  /// Update existing menu (image file is OPTIONAL)
   static Future<void> updateMenuWithFile({
     required int id,
     required String name,
-    required File? imageFile, // Nullable karena bisa tidak diganti
+    File? imageFile, // Nullable - jika null, gambar tidak diubah
     required double price,
     required String description,
     required List<Map<String, dynamic>> ingredients,
@@ -136,7 +105,7 @@ class MenuService {
       request.fields['description'] = description;
       request.fields['ingredients'] = jsonEncode(ingredients);
 
-      // Add image file if provided
+      // Add image file only if provided (optional for update)
       if (imageFile != null) {
         var stream = http.ByteStream(imageFile.openRead());
         var length = await imageFile.length();
@@ -152,38 +121,6 @@ class MenuService {
       // Send request
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
-
-      if (response.statusCode != 200) {
-        throw _handleError(response, "Failed to update menu");
-      }
-    } catch (e) {
-      throw Exception("Error updating menu: $e");
-    }
-  }
-
-  /// Update existing menu with image URL/path (fallback)
-  static Future<void> updateMenu({
-    required int id,
-    required String name,
-    required String image,
-    required double price,
-    required String description,
-    required List<Map<String, dynamic>> ingredients,
-  }) async {
-    try {
-      final payload = {
-        "name": name,
-        "image": image,
-        "price": price,
-        "description": description,
-        "ingredients": ingredients,
-      };
-
-      final response = await http.put(
-        Uri.parse("$baseUrl/menus/$id"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(payload),
-      );
 
       if (response.statusCode != 200) {
         throw _handleError(response, "Failed to update menu");

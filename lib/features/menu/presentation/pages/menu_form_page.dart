@@ -209,51 +209,36 @@ class _MenuFormPageState extends State<MenuFormPage> {
       return;
     }
 
+    // Validasi gambar untuk create
+    if (!isEdit && _imageFile == null) {
+      _showSnackBar("Gambar menu wajib dipilih");
+      return;
+    }
+
     setState(() => isLoading = true);
 
     try {
       final ingredientsData = ingredients.map((e) => e.toJson()).toList();
 
       if (isEdit) {
-        // UPDATE MENU
-        if (_imageFile != null) {
-          // Jika ada file gambar baru, gunakan multipart
-          await MenuService.updateMenuWithFile(
-            id: widget.menu!.id,
-            name: nameC.text,
-            imageFile: File(_imageFile!.path),
-            price: double.parse(priceC.text),
-            description: descC.text,
-            ingredients: ingredientsData,
-          );
-        } else {
-          // Jika tidak ada file baru, gunakan URL lama
-          await MenuService.updateMenu(
-            id: widget.menu!.id,
-            name: nameC.text,
-            image: _currentImageUrl ?? "",
-            price: double.parse(priceC.text),
-            description: descC.text,
-            ingredients: ingredientsData,
-          );
-        }
+        // UPDATE MENU - Always use multipart for consistency
+        await MenuService.updateMenuWithFile(
+          id: widget.menu!.id,
+          name: nameC.text,
+          imageFile: _imageFile != null ? File(_imageFile!.path) : null,
+          price: double.parse(priceC.text),
+          description: descC.text,
+          ingredients: ingredientsData,
+        );
       } else {
         // CREATE MENU
-        if (_imageFile != null) {
-          // Jika ada file gambar, gunakan multipart
-          await MenuService.createMenuWithFile(
-            name: nameC.text,
-            imageFile: File(_imageFile!.path),
-            price: double.parse(priceC.text),
-            description: descC.text,
-            ingredients: ingredientsData,
-          );
-        } else {
-          // Jika tidak ada file, error atau gunakan default
-          _showSnackBar("Gambar menu wajib dipilih");
-          setState(() => isLoading = false);
-          return;
-        }
+        await MenuService.createMenuWithFile(
+          name: nameC.text,
+          imageFile: File(_imageFile!.path),
+          price: double.parse(priceC.text),
+          description: descC.text,
+          ingredients: ingredientsData,
+        );
       }
 
       if (mounted) {
@@ -452,8 +437,9 @@ class _MenuFormPageState extends State<MenuFormPage> {
   }
 
   Widget _getImageWidget() {
+    // Prioritas: file baru yang dipilih > URL dari server > placeholder
     if (_imageFile != null) {
-      return _buildImageWithCheck(_imageFile!.path);
+      return _buildLocalImage(_imageFile!.path);
     }
 
     if (_currentImageUrl != null && _currentImageUrl!.isNotEmpty) {
@@ -463,19 +449,21 @@ class _MenuFormPageState extends State<MenuFormPage> {
     return _buildPlaceholder();
   }
 
-  Widget _buildImageWithCheck(String path) {
+  Widget _buildLocalImage(String path) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.network(
-            path,
+          Image.file(
+            File(path),
             fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => const Icon(
-              Icons.insert_drive_file,
-              size: 50,
-              color: Colors.lightGreen,
+            errorBuilder: (context, error, stackTrace) => const Center(
+              child: Icon(
+                Icons.broken_image,
+                size: 50,
+                color: Colors.redAccent,
+              ),
             ),
           ),
           const Positioned(
@@ -597,7 +585,7 @@ class _MenuFormPageState extends State<MenuFormPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: fieldSpacing / 2),
       child: TextFormField(
-        initialValue: item.quantity.toString(),
+        initialValue: item.quantity > 0 ? item.quantity.toString() : "",
         keyboardType: TextInputType.number,
         decoration: InputDecoration(
           labelText: "Jumlah",

@@ -30,37 +30,24 @@ class _MenuPageState extends State<MenuPage> {
 
   /// ===================== DELETE MENU ==========================
   void actionDeleteMenu(MenuModel menu) async {
-    // 1. Tampilkan dialog konfirmasi
     final confirm = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      // Panggil DeleteMenuDialog, DIALOG AKAN MENGEMBALIKAN TRUE/FALSE
-      builder: (_) => DeleteMenuDialog(
-        menuName: menu.name,
-        // Hapus property onDelete (jika dialog Anda sudah dimodifikasi untuk mengembalikan bool)
-        // Jika Anda TIDAK BISA memodifikasi DeleteMenuDialog, Anda harus memodifikasi kode di bawah ini
-      ),
+      builder: (_) => DeleteMenuDialog(menuName: menu.name),
     );
-
-    // User batal atau menutup dialog (confirm akan bernilai null atau false)
     if (confirm != true) return;
 
     try {
-      // Logic penghapusan hanya berjalan jika confirm == true
-
       print("DELETE MENU START: ${menu.name}");
 
-      // 2. Panggil MenuService untuk menghapus menu
       await MenuService.deleteMenu(menu.id);
 
       print("DELETE MENU DONE");
 
-      // 3. Update daftar menu setelah penghapusan berhasil
       setState(() {
         _loadMenus();
       });
 
-      // 4. Tampilkan notifikasi sukses
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Menu '${menu.name}' berhasil dihapus"),
@@ -68,7 +55,6 @@ class _MenuPageState extends State<MenuPage> {
         ),
       );
     } catch (e) {
-      // 5. Tampilkan notifikasi error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Gagal menghapus menu: $e"),
@@ -76,7 +62,6 @@ class _MenuPageState extends State<MenuPage> {
         ),
       );
     }
-    // Tidak perlu 'finally' karena tidak ada 'isLoading'
   }
 
   /// ========================== UI ==============================
@@ -122,9 +107,9 @@ class _MenuPageState extends State<MenuPage> {
               return MenuCard(
                 nama: menu.name,
                 stok: "Rp ${menu.price.toStringAsFixed(0)}",
-                gambar: "assets/img/nasigoreng.png", // sementara
+                gambar: "http://alope.site:8080/uploads/${menu.image}",
                 onEdit: () {
-                  // TODO: arahkan ke halaman edit
+                  // TODO: EDIT nih
                 },
                 onDelete: () => actionDeleteMenu(menu),
               );
@@ -143,7 +128,7 @@ class _MenuPageState extends State<MenuPage> {
 
           if (result == true) {
             setState(() {
-              _loadMenus(); // reload menu
+              _loadMenus();
             });
           }
         },

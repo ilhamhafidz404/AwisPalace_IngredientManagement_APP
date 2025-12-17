@@ -162,7 +162,8 @@ class _TransactionPageState extends State<TransactionPage> {
                     return TransactionMenuItem(
                       nama: menu.name,
                       harga: "Rp. ${menu.price.toStringAsFixed(0)}",
-                      gambar: "assets/img/nasigoreng.png", // sementara
+                      gambar:
+                          "http://alope.site:8080/uploads/${menu.image}", // sementara
                       quantity: quantity,
                       onQuantityChanged: (newQuantity) {
                         _updateQuantity(menu.id, newQuantity);
