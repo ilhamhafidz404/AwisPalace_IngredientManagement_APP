@@ -1,7 +1,3 @@
-import 'package:ingredient_management_app/features/ingredient/data/models/ingredient_model.dart';
-
-import 'unit_model.dart';
-
 class MenuIngredientModel {
   final int id;
   final IngredientForMenuModel ingredient;

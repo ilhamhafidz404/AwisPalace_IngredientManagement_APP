@@ -1,6 +1,5 @@
 // lib/features/home/data/services/home_service.dart
 
-import 'package:ingredient_management_app/features/transaction/data/models/transaction_model.dart';
 import 'package:ingredient_management_app/features/transaction/data/services/transaction_service.dart';
 
 class HomeService {

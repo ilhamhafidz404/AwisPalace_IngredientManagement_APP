@@ -28,6 +28,30 @@ class _MenuPageState extends State<MenuPage> {
     menusFuture = MenuService.fetchMenus();
   }
 
+  /// ===================== EDIT MENU ==========================
+  void actionEditMenu(MenuModel menu) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => MenuFormPage(menu: menu)),
+    );
+
+    // Jika edit berhasil (result == true), reload menu list
+    if (result == true) {
+      setState(() {
+        _loadMenus();
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Menu '${menu.name}' berhasil diperbarui"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+  }
+
   /// ===================== DELETE MENU ==========================
   void actionDeleteMenu(MenuModel menu) async {
     final confirm = await showDialog<bool>(
@@ -48,19 +72,47 @@ class _MenuPageState extends State<MenuPage> {
         _loadMenus();
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Menu '${menu.name}' berhasil dihapus"),
-          backgroundColor: Colors.green,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Menu '${menu.name}' berhasil dihapus"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Gagal menghapus menu: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Gagal menghapus menu: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// ===================== ADD MENU ==========================
+  void actionAddMenu() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const MenuFormPage()),
+    );
+
+    // Jika create berhasil (result == true), reload menu list
+    if (result == true) {
+      setState(() {
+        _loadMenus();
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Menu berhasil ditambahkan"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     }
   }
 
@@ -85,9 +137,40 @@ class _MenuPageState extends State<MenuPage> {
           // Error
           if (snapshot.hasError) {
             return Center(
-              child: Text(
-                "Gagal memuat menu\n${snapshot.error}",
-                textAlign: TextAlign.center,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 60, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Gagal memuat menu",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "${snapshot.error}",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _loadMenus();
+                      });
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text("Coba Lagi"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xff00C3FF),
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             );
           }
@@ -95,43 +178,58 @@ class _MenuPageState extends State<MenuPage> {
           final menus = snapshot.data!;
 
           if (menus.isEmpty) {
-            return const Center(child: Text("Menu masih kosong"));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.restaurant_menu,
+                    size: 80,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Menu masih kosong",
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Tap tombol + untuk menambahkan menu",
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                  ),
+                ],
+              ),
+            );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: menus.length,
-            itemBuilder: (context, index) {
-              final menu = menus[index];
-
-              return MenuCard(
-                nama: menu.name,
-                stok: "Rp ${menu.price.toStringAsFixed(0)}",
-                gambar: "http://alope.site:8080/uploads/${menu.image}",
-                onEdit: () {
-                  // TODO: EDIT nih
-                },
-                onDelete: () => actionDeleteMenu(menu),
-              );
+          return RefreshIndicator(
+            onRefresh: () async {
+              setState(() {
+                _loadMenus();
+              });
             },
+            child: ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: menus.length,
+              itemBuilder: (context, index) {
+                final menu = menus[index];
+
+                return MenuCard(
+                  nama: menu.name,
+                  stok: "Rp ${menu.price.toStringAsFixed(0)}",
+                  gambar: "http://alope.site:8080/uploads/${menu.image}",
+                  onEdit: () => actionEditMenu(menu),
+                  onDelete: () => actionDeleteMenu(menu),
+                );
+              },
+            ),
           );
         },
       ),
 
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xff00C3FF),
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const MenuFormPage()),
-          );
-
-          if (result == true) {
-            setState(() {
-              _loadMenus();
-            });
-          }
-        },
+        onPressed: actionAddMenu,
         child: const Icon(Icons.add, color: Colors.white),
       ),
 
