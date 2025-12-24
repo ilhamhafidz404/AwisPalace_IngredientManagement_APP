@@ -39,6 +39,7 @@ dependencies:
   open_filex: ^4.3.4
   intl: ^0.18.1
   shared_preferences: ^2.5.4
+  fl_chart: ^0.69.0
   
   flutter:
     sdk: flutter

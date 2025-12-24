@@ -8,28 +8,61 @@ class TransactionService {
   // Sesuaikan dengan URL API Anda
   static const String baseUrl = "http://localhost:8080";
 
-  static Future<List<TransactionModel>> fetchTodayTransactions() async {
-    final response = await http.get(Uri.parse('$baseUrl/transactions/'));
+  // static Future<List<TransactionModel>> fetchTodayTransactions() async {
+  //   final response = await http.get(Uri.parse('$baseUrl/transactions/'));
+
+  //   if (response.statusCode == 200) {
+  //     final Map<String, dynamic> jsonResponse = json.decode(response.body);
+  //     final List<dynamic> data = jsonResponse['data'];
+
+  //     // Filter transaksi hari ini
+  //     final today = DateTime.now();
+  //     final todayTransactions = data.where((json) {
+  //       final transactionDate = DateTime.parse(json['transaction_date']);
+  //       return transactionDate.year == today.year &&
+  //           transactionDate.month == today.month &&
+  //           transactionDate.day == today.day;
+  //     }).toList();
+
+  //     return todayTransactions
+  //         .map((json) => TransactionModel.fromJson(json))
+  //         .toList();
+  //   } else {
+  //     throw Exception('Failed to load transactions');
+  //   }
+  // }
+
+  static Future<List<TransactionModel>> fetchTransactions({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    String url = "$baseUrl/transactions";
+
+    if (startDate != null && endDate != null) {
+      final s = startDate.toIso8601String().split('T').first;
+      final e = endDate.toIso8601String().split('T').first;
+      url += "?start_date=$s&end_date=$e";
+    }
+
+    final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
-      final Map<String, dynamic> jsonResponse = json.decode(response.body);
-      final List<dynamic> data = jsonResponse['data'];
-
-      // Filter transaksi hari ini
-      final today = DateTime.now();
-      final todayTransactions = data.where((json) {
-        final transactionDate = DateTime.parse(json['transaction_date']);
-        return transactionDate.year == today.year &&
-            transactionDate.month == today.month &&
-            transactionDate.day == today.day;
-      }).toList();
-
-      return todayTransactions
-          .map((json) => TransactionModel.fromJson(json))
+      final decoded = jsonDecode(response.body);
+      return (decoded['data'] as List)
+          .map((e) => TransactionModel.fromJson(e))
           .toList();
     } else {
-      throw Exception('Failed to load transactions');
+      throw Exception("Failed to fetch transactions");
     }
+  }
+
+  /// default: hari ini
+  static Future<List<TransactionModel>> fetchTodayTransactions() {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day);
+    final end = start.add(const Duration(days: 1));
+
+    return fetchTransactions(startDate: start, endDate: end);
   }
 
   /// Fetch transaction by ID
