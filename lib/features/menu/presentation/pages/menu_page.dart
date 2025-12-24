@@ -223,6 +223,7 @@ class _MenuPageState extends State<MenuPage> {
                 final menu = menus[index];
 
                 return MenuCard(
+                  menuId: menu.id,
                   nama: menu.name,
                   price: menu.price.toRupiah(),
                   gambar: "http://alope.site:8080/uploads/${menu.image}",

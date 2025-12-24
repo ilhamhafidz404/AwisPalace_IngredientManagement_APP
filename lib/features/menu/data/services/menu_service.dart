@@ -41,6 +41,20 @@ class MenuService {
     }
   }
 
+  static Future<MenuDetail> getMenuDetail(int id) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/menus/$id'),
+      headers: {'Accept': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+      return MenuDetail.fromJson(jsonData['data']);
+    } else {
+      throw Exception('Gagal memuat detail menu');
+    }
+  }
+
   // ==================== CREATE METHOD ====================
 
   /// Create new menu with image file (REQUIRED)

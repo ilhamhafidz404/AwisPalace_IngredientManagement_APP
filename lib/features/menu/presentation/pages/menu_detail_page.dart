@@ -1,26 +1,16 @@
+// lib/features/menu/presentation/pages/menu_detail_page.dart
+
 import 'package:flutter/material.dart';
+import 'package:ingredient_management_app/features/menu/data/models/menu_model.dart';
+import '../../data/services/menu_service.dart';
 
 class MenuDetailPage extends StatelessWidget {
-  final String nama;
-  final String gambar;
+  final int menuId;
 
-  const MenuDetailPage({super.key, required this.nama, required this.gambar});
+  const MenuDetailPage({super.key, required this.menuId});
 
   @override
   Widget build(BuildContext context) {
-    final bahan = [
-      ["Nasi", "1 Piring"],
-      ["Telur", "1 Butir"],
-      ["Minyak Goreng", "2 Sdm"],
-      ["Bawang Putih", "2 Siung"],
-      ["Bawang Merah", "2 Siung"],
-      ["Cabai", "3 Butir"],
-      ["Kecap Manis", "2 Sdm"],
-      ["Garam", "1/2 Sdt"],
-      ["Royko", "1/2 Sdt"],
-      ["Lada", "1/4 Sdt"],
-    ];
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF00BCEE),
@@ -30,63 +20,112 @@ class MenuDetailPage extends StatelessWidget {
         ),
         title: const Text("Detail Menu", style: TextStyle(color: Colors.white)),
       ),
+      body: FutureBuilder<MenuDetail>(
+        future: MenuService.getMenuDetail(menuId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                gambar,
-                width: 250,
-                height: 200,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return const SizedBox(
-                    width: 100,
-                    height: 150,
-                    child: Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
+          if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}"));
+          }
+
+          final menu = snapshot.data!;
+          final imageUrl = 'http://alope.site:8080/uploads/${menu.image}';
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                /// IMAGE
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    imageUrl,
+                    width: double.infinity,
+                    height: 220,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, progress) {
+                      if (progress == null) return child;
+                      return const SizedBox(
+                        height: 220,
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    },
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 220,
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.broken_image, size: 50),
                     ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: 100,
-                    height: 150,
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.broken_image, size: 40),
-                  );
-                },
-              ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                /// NAME
+                Text(
+                  menu.name,
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+                const SizedBox(height: 8),
+
+                /// DESCRIPTION
+                if (menu.description.isNotEmpty)
+                  Text(
+                    menu.description,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+
+                const SizedBox(height: 24),
+
+                /// INGREDIENTS
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    "Bahan-bahan",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                Column(
+                  children: menu.ingredients.map((item) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              "• ${item.ingredientName}",
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ),
+                          Text(
+                            "${item.quantity} ${item.unitName}",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
             ),
-
-            const SizedBox(height: 20),
-
-            Text(
-              nama,
-              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 20),
-
-            // LIST BAHAN
-            Column(
-              children: bahan.map((item) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("• ${item[0]}", style: const TextStyle(fontSize: 16)),
-                    Text(item[1], style: const TextStyle(fontSize: 16)),
-                  ],
-                );
-              }).toList(),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

@@ -59,3 +59,53 @@ class MenuCreatePayload {
     "ingredients": ingredients,
   };
 }
+
+//
+
+class MenuDetail {
+  final int id;
+  final String name;
+  final String image;
+  final String description;
+  final List<MenuIngredient> ingredients;
+
+  MenuDetail({
+    required this.id,
+    required this.name,
+    required this.image,
+    required this.description,
+    required this.ingredients,
+  });
+
+  factory MenuDetail.fromJson(Map<String, dynamic> json) {
+    return MenuDetail(
+      id: json['id'],
+      name: json['name'],
+      image: json['image'],
+      description: json['description'] ?? '',
+      ingredients: (json['ingredients'] as List)
+          .map((e) => MenuIngredient.fromJson(e))
+          .toList(),
+    );
+  }
+}
+
+class MenuIngredient {
+  final String ingredientName;
+  final num quantity;
+  final String unitName;
+
+  MenuIngredient({
+    required this.ingredientName,
+    required this.quantity,
+    required this.unitName,
+  });
+
+  factory MenuIngredient.fromJson(Map<String, dynamic> json) {
+    return MenuIngredient(
+      ingredientName: json['ingredient']['name'],
+      quantity: json['quantity'],
+      unitName: json['unit']['name'],
+    );
+  }
+}
