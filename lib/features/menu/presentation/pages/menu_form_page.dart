@@ -12,8 +12,15 @@ import '../../data/models/menu_model.dart';
 class MasterIngredientModel {
   final int id;
   final String name;
+  final int? unitId; // Add unit_id from ingredient
+  final String? unitName; // Add unit_name from ingredient
 
-  MasterIngredientModel({required this.id, required this.name});
+  MasterIngredientModel({
+    required this.id,
+    required this.name,
+    this.unitId,
+    this.unitName,
+  });
 
   @override
   bool operator ==(Object other) =>
@@ -133,6 +140,8 @@ class _MenuFormPageState extends State<MenuFormPage> {
           ingredient: MasterIngredientModel(
             id: e.ingredient.id,
             name: e.ingredient.name,
+            unitId: e.unit.id,
+            unitName: e.unit.name,
           ),
           quantity: e.quantity,
           unit: MasterUnitModel(id: e.unit.id, name: e.unit.name),
@@ -150,7 +159,14 @@ class _MenuFormPageState extends State<MenuFormPage> {
 
       setState(() {
         masterIngredients = loadedIngredients
-            .map((e) => MasterIngredientModel(id: e.id, name: e.name))
+            .map(
+              (e) => MasterIngredientModel(
+                id: e.id,
+                name: e.name,
+                unitId: e.unitId, // Get unit_id from ingredient
+                unitName: e.unitName, // Get unit_name from ingredient
+              ),
+            )
             .toList();
         masterUnits = loadedUnits
             .map((e) => MasterUnitModel(id: e.id, name: e.name))
@@ -178,6 +194,29 @@ class _MenuFormPageState extends State<MenuFormPage> {
   void removeIngredient(int index) {
     setState(() {
       ingredients.removeAt(index);
+    });
+  }
+
+  void onIngredientChanged(
+    int index,
+    MasterIngredientModel? selectedIngredient,
+  ) {
+    setState(() {
+      ingredients[index].ingredient = selectedIngredient;
+
+      // Auto-fill unit from ingredient
+      if (selectedIngredient != null && selectedIngredient.unitId != null) {
+        final unit = masterUnits.firstWhere(
+          (u) => u.id == selectedIngredient.unitId,
+          orElse: () => MasterUnitModel(
+            id: selectedIngredient.unitId!,
+            name: selectedIngredient.unitName ?? '',
+          ),
+        );
+        ingredients[index].unit = unit;
+      } else {
+        ingredients[index].unit = null;
+      }
     });
   }
 
@@ -539,7 +578,7 @@ class _MenuFormPageState extends State<MenuFormPage> {
             const Divider(),
             _buildIngredientDropdown(index, item),
             _buildQuantityInput(index, item),
-            _buildUnitDropdown(index, item),
+            _buildUnitDisplay(index, item), // Changed to display only
           ],
         ),
       ),
@@ -573,9 +612,7 @@ class _MenuFormPageState extends State<MenuFormPage> {
       label: "Bahan Baku",
       value: item.ingredient,
       items: masterIngredients,
-      onChanged: (value) {
-        setState(() => ingredients[index].ingredient = value);
-      },
+      onChanged: (value) => onIngredientChanged(index, value),
       itemBuilder: (i) => i.name,
       icon: Icons.kitchen,
     );
@@ -608,16 +645,77 @@ class _MenuFormPageState extends State<MenuFormPage> {
     );
   }
 
-  Widget _buildUnitDropdown(int index, IngredientFormModel item) {
-    return _buildDropdown<MasterUnitModel>(
-      label: "Satuan",
-      value: item.unit,
-      items: masterUnits,
-      onChanged: (value) {
-        setState(() => ingredients[index].unit = value);
-      },
-      itemBuilder: (u) => u.name,
-      icon: Icons.straighten,
+  Widget _buildUnitDisplay(int index, IngredientFormModel item) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: fieldSpacing / 2),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.straighten, color: Colors.grey[600], size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Satuan",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.unit?.name ?? "Pilih bahan terlebih dahulu",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: item.unit != null
+                          ? Colors.black87
+                          : Colors.grey[400],
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (item.unit != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.green[200]!),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.check_circle,
+                      color: Colors.green[700],
+                      size: 14,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      "Auto",
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.green[700],
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
