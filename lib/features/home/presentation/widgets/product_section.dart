@@ -38,7 +38,7 @@ class _ProductSectionState extends State<ProductSection> {
               imagePath:
                   "http://alope.site:8080/uploads/${item["image"]}", // Default image
               title: item['name'],
-              subtitle: "Tersedia: ${item['quantity']} Porsi",
+              subtitle: "Terjual: ${item['quantity']} Porsi",
             );
           },
         ),

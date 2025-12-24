@@ -1,10 +1,9 @@
-// lib/features/transaction/presentation/pages/transaction_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:ingredient_management_app/features/menu/data/models/menu_model.dart';
 import 'package:ingredient_management_app/features/menu/data/services/menu_service.dart';
 import 'package:ingredient_management_app/features/transaction/data/services/transaction_service.dart';
 import 'package:ingredient_management_app/features/transaction/presentation/widgets/transaction_menu_item.dart';
+import 'package:ingredient_management_app/utils/currency_extension.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav_handler.dart';
 import '../../../../widgets/custom_bottom_nav.dart';
 
@@ -72,18 +71,15 @@ class _TransactionPageState extends State<TransactionPage> {
     });
 
     try {
-      // Konversi ke format yang sesuai dengan API
       final items = menuQuantities.entries
           .map((entry) => {'menu_id': entry.key, 'quantity': entry.value})
           .toList();
 
-      // Kirim ke API
       final result = await TransactionService.createTransaction(
         items: items,
         notes: 'Transaksi dari aplikasi',
       );
 
-      // Berhasil
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -161,7 +157,7 @@ class _TransactionPageState extends State<TransactionPage> {
 
                     return TransactionMenuItem(
                       nama: menu.name,
-                      harga: "Rp. ${menu.price.toStringAsFixed(0)}",
+                      harga: menu.price.toRupiah(),
                       gambar:
                           "http://alope.site:8080/uploads/${menu.image}", // sementara
                       quantity: quantity,
@@ -200,7 +196,7 @@ class _TransactionPageState extends State<TransactionPage> {
                           ),
                         ),
                         Text(
-                          "Rp ${total.toStringAsFixed(0)}",
+                          "${total.toRupiah()}",
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,

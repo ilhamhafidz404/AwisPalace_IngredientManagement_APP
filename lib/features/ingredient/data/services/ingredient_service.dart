@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/ingredient_model.dart';
 
 class IngredientService {
-  static const String baseUrl = "http://alope.site:8080";
+  static const String baseUrl = "http://localhost:8080";
 
   /// GET
   static Future<List<IngredientModel>> getIngredients() async {

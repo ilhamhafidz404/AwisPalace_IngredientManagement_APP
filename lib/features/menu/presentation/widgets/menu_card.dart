@@ -3,7 +3,7 @@ import 'package:ingredient_management_app/features/menu/presentation/pages/menu_
 
 class MenuCard extends StatelessWidget {
   final String nama;
-  final String stok;
+  final String price;
   final String gambar;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -11,7 +11,7 @@ class MenuCard extends StatelessWidget {
   const MenuCard({
     super.key,
     required this.nama,
-    required this.stok,
+    required this.price,
     required this.gambar,
     required this.onEdit,
     required this.onDelete,
@@ -68,7 +68,7 @@ class MenuCard extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
 
-          subtitle: Text("Tersedia: $stok"),
+          subtitle: Text("$price"),
 
           trailing: Row(
             mainAxisSize: MainAxisSize.min,

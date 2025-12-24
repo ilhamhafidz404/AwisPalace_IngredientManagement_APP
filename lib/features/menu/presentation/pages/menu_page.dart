@@ -4,7 +4,9 @@ import 'package:ingredient_management_app/features/menu/data/services/menu_servi
 import 'package:ingredient_management_app/features/menu/presentation/pages/menu_form_page.dart';
 import 'package:ingredient_management_app/features/menu/presentation/widgets/delete_menu_dialog.dart';
 import 'package:ingredient_management_app/features/menu/presentation/widgets/menu_card.dart';
+import 'package:ingredient_management_app/utils/currency_extension.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav_handler.dart';
+import 'package:intl/intl.dart';
 import '../../../../widgets/custom_bottom_nav.dart';
 
 class MenuPage extends StatefulWidget {
@@ -35,7 +37,6 @@ class _MenuPageState extends State<MenuPage> {
       MaterialPageRoute(builder: (_) => MenuFormPage(menu: menu)),
     );
 
-    // Jika edit berhasil (result == true), reload menu list
     if (result == true) {
       setState(() {
         _loadMenus();
@@ -115,6 +116,13 @@ class _MenuPageState extends State<MenuPage> {
       }
     }
   }
+
+  //
+  final rupiah = NumberFormat.currency(
+    locale: 'id_ID',
+    symbol: 'Rp ',
+    decimalDigits: 0,
+  );
 
   /// ========================== UI ==============================
   @override
@@ -216,7 +224,7 @@ class _MenuPageState extends State<MenuPage> {
 
                 return MenuCard(
                   nama: menu.name,
-                  stok: "Rp ${menu.price.toStringAsFixed(0)}",
+                  price: menu.price.toRupiah(),
                   gambar: "http://alope.site:8080/uploads/${menu.image}",
                   onEdit: () => actionEditMenu(menu),
                   onDelete: () => actionDeleteMenu(menu),

@@ -14,7 +14,7 @@ class DeleteIngredientDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text("Batal"),
+          child: const Text("Batal", style: TextStyle(color: Colors.black)),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -22,7 +22,7 @@ class DeleteIngredientDialog extends StatelessWidget {
             // ❗ HANYA RETURN TRUE
             Navigator.pop(context, true);
           },
-          child: const Text("Hapus"),
+          child: const Text("Hapus", style: TextStyle(color: Colors.white)),
         ),
       ],
     );

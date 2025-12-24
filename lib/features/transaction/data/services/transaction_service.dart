@@ -6,12 +6,8 @@ import 'package:ingredient_management_app/features/transaction/data/models/trans
 
 class TransactionService {
   // Sesuaikan dengan URL API Anda
-  static const String baseUrl = "http://alope.site:8080";
+  static const String baseUrl = "http://localhost:8080";
 
-  /// Fetch all transactions
-  // lib/features/transaction/data/services/transaction_service.dart
-
-  // Tambahkan method baru untuk fetch transaksi hari ini
   static Future<List<TransactionModel>> fetchTodayTransactions() async {
     final response = await http.get(Uri.parse('$baseUrl/transactions/'));
 
@@ -48,7 +44,6 @@ class TransactionService {
     }
   }
 
-  /// Create transaction
   /// Create transaction
   static Future<Map<String, dynamic>> createTransaction({
     required List<Map<String, dynamic>> items,

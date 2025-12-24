@@ -19,9 +19,15 @@ class CustomBottomNav extends StatelessWidget {
       unselectedItemColor: Colors.grey,
       type: BottomNavigationBarType.fixed,
       items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
-        BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Menu'),
-        BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Bahan'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.dashboard),
+          label: 'Dashboard',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.restaurant_menu),
+          label: 'Menu',
+        ),
+        BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Bahan'),
         BottomNavigationBarItem(icon: Icon(Icons.calculate), label: 'Hitung'),
         BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
       ],
