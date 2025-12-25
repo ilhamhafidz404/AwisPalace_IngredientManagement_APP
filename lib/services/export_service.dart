@@ -5,7 +5,7 @@ import 'package:open_filex/open_filex.dart';
 import 'package:intl/intl.dart';
 
 class ExportService {
-  static const String baseUrl = "http://localhost:8080";
+  static const String baseUrl = "http://alope.site:8080";
 
   /// Export transactions to Excel
   ///
