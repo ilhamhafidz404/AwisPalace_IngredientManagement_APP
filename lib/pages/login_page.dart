@@ -18,50 +18,52 @@ class _LoginPageState extends State<LoginPage> {
       _isLoading = true;
     });
 
-    try {
-      final result = await AuthService.signInWithGoogle();
+    Navigator.pushReplacementNamed(context, "/");
 
-      if (result != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white),
-                const SizedBox(width: 10),
-                Text('Welcome, ${result['data']['user']['name']}!'),
-              ],
-            ),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+    // try {
+    //   final result = await AuthService.signInWithGoogle();
 
-        // Navigate to home
-        Navigator.pushReplacementNamed(context, "/home");
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error, color: Colors.white),
-                const SizedBox(width: 10),
-                Expanded(child: Text('Login failed: ${e.toString()}')),
-              ],
-            ),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+    //   if (result != null && mounted) {
+    //     ScaffoldMessenger.of(context).showSnackBar(
+    //       SnackBar(
+    //         content: Row(
+    //           children: [
+    //             const Icon(Icons.check_circle, color: Colors.white),
+    //             const SizedBox(width: 10),
+    //             Text('Welcome, ${result['data']['user']['name']}!'),
+    //           ],
+    //         ),
+    //         backgroundColor: Colors.green,
+    //         behavior: SnackBarBehavior.floating,
+    //       ),
+    //     );
+
+    //     // Navigate to home
+    //     Navigator.pushReplacementNamed(context, "/home");
+    //   }
+    // } catch (e) {
+    //   if (mounted) {
+    //     ScaffoldMessenger.of(context).showSnackBar(
+    //       SnackBar(
+    //         content: Row(
+    //           children: [
+    //             const Icon(Icons.error, color: Colors.white),
+    //             const SizedBox(width: 10),
+    //             Expanded(child: Text('Login failed: ${e.toString()}')),
+    //           ],
+    //         ),
+    //         backgroundColor: Colors.red,
+    //         behavior: SnackBarBehavior.floating,
+    //       ),
+    //     );
+    //   }
+    // } finally {
+    //   if (mounted) {
+    //     setState(() {
+    //       _isLoading = false;
+    //     });
+    //   }
+    // }
   }
 
   @override
@@ -114,14 +116,14 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 30),
 
                 // === TERMS ===
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    'By signing in, you agree to our Terms of Service and Privacy Policy',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                  ),
-                ),
+                // Padding(
+                //   padding: const EdgeInsets.symmetric(horizontal: 20),
+                //   child: Text(
+                //     'By signing in, you agree to our Terms of Service and Privacy Policy',
+                //     textAlign: TextAlign.center,
+                //     style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                //   ),
+                // ),
               ],
             ),
           ),

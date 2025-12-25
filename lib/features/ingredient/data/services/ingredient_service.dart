@@ -40,7 +40,7 @@ class IngredientService {
   static Future<void> updateIngredient({
     required int id,
     required String name,
-    required int stock,
+    required double stock,
     required int unitId,
   }) async {
     final response = await http.put(

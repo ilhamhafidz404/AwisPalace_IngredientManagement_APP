@@ -4,6 +4,7 @@ import 'package:ingredient_management_app/features/ingredient/data/services/ingr
 import 'package:ingredient_management_app/features/ingredient/presentation/widgets/created_ingredient_dialog.dart';
 import 'package:ingredient_management_app/features/ingredient/presentation/widgets/delete_ingredient_dialog.dart';
 import 'package:ingredient_management_app/features/ingredient/presentation/widgets/edit_ingredient_dialog.dart';
+import 'package:ingredient_management_app/widgets/custom_app_bar.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav_handler.dart';
 
@@ -29,11 +30,11 @@ class _IngredientPageState extends State<IngredientPage> {
     ingredientFuture = IngredientService.getIngredients();
   }
 
-  bool isLowStock(int stock) {
+  bool isLowStock(double stock) {
     return stock <= 5;
   }
 
-  /// =================== EDIT ===================ingredientFuture = IngredientService.getIngredients();
+  /// =================== EDIT ===================
   void editItem(IngredientModel item) {
     showDialog(
       context: context,
@@ -64,6 +65,13 @@ class _IngredientPageState extends State<IngredientPage> {
         },
       ),
     );
+  }
+
+  String formatStock(double stock) {
+    if (stock % 1 == 0) {
+      return stock.toInt().toString();
+    }
+    return stock.toStringAsFixed(1);
   }
 
   /// =================== DELETE ===================
@@ -106,15 +114,24 @@ class _IngredientPageState extends State<IngredientPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: const Color(0xff00C3FF),
+        backgroundColor: const Color(0xFF00B3E6),
+        elevation: 0,
         title: const Text(
           "Kelola Bahan",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          CustomAppBar(
+            onRefresh: _loadIngredients,
+            onLogout: () {
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/login',
+                (route) => false,
+              );
+            },
+          ),
+        ],
       ),
 
       body: FutureBuilder<List<IngredientModel>>(
@@ -144,6 +161,10 @@ class _IngredientPageState extends State<IngredientPage> {
             itemCount: ingredients.length,
             itemBuilder: (context, index) {
               final item = ingredients[index];
+
+              debugPrint(
+                'Stock ${item.name}: ${item.stock} (${item.stock.runtimeType})',
+              );
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -232,7 +253,7 @@ class _IngredientPageState extends State<IngredientPage> {
                   subtitle: Padding(
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(
-                      "Stok: ${item.stock} ${item.unitSymbol}",
+                      "Stok: ${formatStock(item.stock)} ${item.unitSymbol}",
                       style: TextStyle(
                         fontSize: 13,
                         color: isLowStock(item.stock)
