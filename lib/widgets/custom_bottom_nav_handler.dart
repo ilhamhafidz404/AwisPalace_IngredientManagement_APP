@@ -17,9 +17,6 @@ class CustomBottomNavHandler {
       case 3:
         Navigator.pushReplacementNamed(context, '/transaction');
         break;
-      case 4:
-        Navigator.pushReplacementNamed(context, '/profile');
-        break;
     }
   }
 }

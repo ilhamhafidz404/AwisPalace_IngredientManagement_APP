@@ -29,7 +29,6 @@ class CustomBottomNav extends StatelessWidget {
         ),
         BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Bahan'),
         BottomNavigationBarItem(icon: Icon(Icons.calculate), label: 'Hitung'),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
       ],
     );
   }

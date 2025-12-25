@@ -29,6 +29,10 @@ class _IngredientPageState extends State<IngredientPage> {
     ingredientFuture = IngredientService.getIngredients();
   }
 
+  bool isLowStock(int stock) {
+    return stock <= 5;
+  }
+
   /// =================== EDIT ===================ingredientFuture = IngredientService.getIngredients();
   void editItem(IngredientModel item) {
     showDialog(
@@ -141,49 +145,118 @@ class _IngredientPageState extends State<IngredientPage> {
             itemBuilder: (context, index) {
               final item = ingredients[index];
 
-              return Card(
-                elevation: 3,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: isLowStock(item.stock)
+                        ? Colors.red
+                        : Colors.transparent,
+                    width: 2,
+                  ),
+                  color: isLowStock(item.stock)
+                      ? Colors.red.withOpacity(0.05)
+                      : Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
+                    horizontal: 16,
+                    vertical: 12,
                   ),
 
-                  // leading: ClipRRect(
-                  //   borderRadius: BorderRadius.circular(10),
-                  //   child: Container(
-                  //     width: 50,
-                  //     height: 50,
-                  //     color: Colors.grey.shade300,
-                  //     child: const Icon(
-                  //       Icons.inventory,
-                  //       size: 30,
-                  //       color: Colors.black54,
-                  //     ),
+                  /// ICON
+                  // leading: Container(
+                  //   width: 48,
+                  //   height: 48,
+                  //   decoration: BoxDecoration(
+                  //     color: isLowStock(item.stock)
+                  //         ? Colors.red.withOpacity(0.15)
+                  //         : Colors.blue.withOpacity(0.15),
+                  //     borderRadius: BorderRadius.circular(12),
+                  //   ),
+                  //   child: Icon(
+                  //     isLowStock(item.stock)
+                  //         ? Icons.warning_amber_rounded
+                  //         : Icons.inventory_2_outlined,
+                  //     color: isLowStock(item.stock) ? Colors.red : Colors.blue,
+                  //     size: 26,
                   //   ),
                   // ),
-                  title: Text(
-                    item.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+
+                  /// TITLE
+                  title: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.name,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: isLowStock(item.stock)
+                                ? Colors.red
+                                : Colors.black,
+                          ),
+                        ),
+                      ),
+                      // if (isLowStock(item.stock))
+                      //   Container(
+                      //     padding: const EdgeInsets.symmetric(
+                      //       horizontal: 8,
+                      //       vertical: 4,
+                      //     ),
+                      //     decoration: BoxDecoration(
+                      //       color: Colors.red,
+                      //       borderRadius: BorderRadius.circular(8),
+                      //     ),
+                      //     child: const Text(
+                      //       "LOW",
+                      //       style: TextStyle(
+                      //         color: Colors.white,
+                      //         fontSize: 11,
+                      //         fontWeight: FontWeight.bold,
+                      //       ),
+                      //     ),
+                      //   ),
+                    ],
+                  ),
+
+                  /// SUBTITLE
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(
+                      "Stok: ${item.stock} ${item.unitSymbol}",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isLowStock(item.stock)
+                            ? Colors.red.shade700
+                            : Colors.grey.shade700,
+                        fontWeight: isLowStock(item.stock)
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
                     ),
                   ),
 
-                  subtitle: Text("Tersedia: ${item.stock} ${item.unitSymbol}"),
-
+                  /// ACTION
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
+                        icon: const Icon(Icons.edit),
+                        color: Colors.blue,
                         onPressed: () => editItem(item),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
+                        icon: const Icon(Icons.delete),
+                        color: Colors.red,
                         onPressed: () => deleteItem(item),
                       ),
                     ],
