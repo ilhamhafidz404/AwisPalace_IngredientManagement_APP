@@ -6,6 +6,7 @@ import 'package:ingredient_management_app/features/home/presentation/widgets/exp
 import 'package:ingredient_management_app/features/home/presentation/widgets/ingredient_section.dart';
 import 'package:ingredient_management_app/features/home/presentation/widgets/product_section.dart';
 import 'package:ingredient_management_app/features/home/presentation/widgets/menu_bar_chart.dart';
+import 'package:ingredient_management_app/features/ingredient/data/services/ingredient_service.dart';
 import 'package:ingredient_management_app/services/export_service.dart';
 import 'package:ingredient_management_app/utils/range_date_indonesian_style.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav.dart';
@@ -35,6 +36,8 @@ class _HomePageState extends State<HomePage> {
   late DateTime _defaultStartDate;
   late DateTime _defaultEndDate;
 
+  bool _lowStockAlertShown = false;
+
   /// MODE LIST / CHART
   MenuViewMode menuViewMode = MenuViewMode.list;
 
@@ -43,6 +46,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _initDefaultDate();
     _loadDashboard();
+    _checkLowStockIngredients();
   }
 
   /// ======================
@@ -63,6 +67,7 @@ class _HomePageState extends State<HomePage> {
   /// LOAD DASHBOARD
   /// ======================
   void _loadDashboard() {
+    _lowStockAlertShown = false;
     dashboardFuture = HomeService.getDashboard(
       startDate: startDate,
       endDate: endDate,
@@ -113,6 +118,56 @@ class _HomePageState extends State<HomePage> {
 
   DateTime? _exportStartDate;
   DateTime? _exportEndDate;
+
+  Future<void> _checkLowStockIngredients() async {
+    if (_lowStockAlertShown) return;
+
+    try {
+      final ingredients = await IngredientService.getIngredients();
+
+      final lowStockItems = ingredients
+          .where((i) => (i.stock ?? 0) <= 5)
+          .map((i) => i.name)
+          .toList();
+
+      if (lowStockItems.isNotEmpty) {
+        _lowStockAlertShown = true;
+
+        final message = '${lowStockItems.join(', ')} sudah mulai habis';
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Row(
+                  children: const [
+                    Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                    SizedBox(width: 8),
+                    Text('Peringatan Stok'),
+                  ],
+                ),
+                content: Text(message, style: const TextStyle(fontSize: 14)),
+                actions: [
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Mengerti'),
+                  ),
+                ],
+              );
+            },
+          );
+        });
+      }
+    } catch (e) {
+      // Optional: log error
+      debugPrint('Gagal cek stok ingredient: $e');
+    }
+  }
 
   // =========================
   // EXPORT DIALOG
@@ -298,6 +353,40 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _showLowStockAlert(String message) {
+    if (_lowStockAlertShown) return;
+
+    _lowStockAlertShown = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Row(
+              children: const [
+                Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                SizedBox(width: 8),
+                Text('Peringatan Stok'),
+              ],
+            ),
+            content: Text(message, style: const TextStyle(fontSize: 14)),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Mengerti'),
+              ),
+            ],
+          );
+        },
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -350,6 +439,12 @@ class _HomePageState extends State<HomePage> {
           final data = snapshot.data!;
           final menus = (data['menus'] ?? []) as List;
           final ingredients = (data['ingredients'] ?? []) as List;
+
+          final message = data['message']?.toString() ?? '';
+
+          if (message.contains('sudah mulai habis')) {
+            _showLowStockAlert(message);
+          }
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
