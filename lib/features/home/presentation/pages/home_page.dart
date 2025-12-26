@@ -9,6 +9,7 @@ import 'package:ingredient_management_app/features/home/presentation/widgets/men
 import 'package:ingredient_management_app/features/ingredient/data/services/ingredient_service.dart';
 import 'package:ingredient_management_app/services/export_service.dart';
 import 'package:ingredient_management_app/utils/range_date_indonesian_style.dart';
+import 'package:ingredient_management_app/widgets/custom_app_bar.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav_handler.dart';
 import 'package:intl/intl.dart';
@@ -403,6 +404,18 @@ class _HomePageState extends State<HomePage> {
           "Dashboard",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          CustomAppBar(
+            onRefresh: _loadDashboard,
+            onLogout: () {
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/login',
+                (route) => false,
+              );
+            },
+          ),
+        ],
       ),
 
       /// ======================
@@ -464,14 +477,37 @@ class _HomePageState extends State<HomePage> {
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
-                        child: Text(
-                          "Transaksi ${FormatDateRangeIndonesianStyle(startDate, endDate)}",
-                          style: const TextStyle(color: Colors.white),
-                          overflow: TextOverflow.ellipsis,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              "Transaksi",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              FormatDateRangeIndonesianStyle(
+                                startDate,
+                                endDate,
+                              ),
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
+
                       Row(
                         children: [
                           TextButton.icon(
@@ -482,9 +518,13 @@ class _HomePageState extends State<HomePage> {
                               foregroundColor: Colors.white,
                             ),
                           ),
-                          TextButton(
+                          IconButton(
                             onPressed: _isDefaultRange ? null : _resetFilter,
-                            child: const Text("Reset"),
+                            icon: const Icon(
+                              Icons.refresh,
+                              size: 18,
+                              color: Colors.white,
+                            ),
                           ),
                         ],
                       ),

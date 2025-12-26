@@ -6,7 +6,7 @@ import 'package:ingredient_management_app/features/transaction/data/models/trans
 
 class TransactionService {
   // Sesuaikan dengan URL API Anda
-  static const String baseUrl = "http://localhost:8080";
+  static const String baseUrl = "http://alope.site:8080";
 
   // static Future<List<TransactionModel>> fetchTodayTransactions() async {
   //   final response = await http.get(Uri.parse('$baseUrl/transactions/'));

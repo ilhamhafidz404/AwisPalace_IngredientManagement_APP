@@ -4,10 +4,10 @@ import 'package:ingredient_management_app/services/unit_service.dart';
 
 class EditIngredientDialog extends StatefulWidget {
   final String initialName;
-  final int initialStock;
+  final double initialStock;
   final int initialUnitId;
 
-  final Function(String name, int stock, int unitId) onSave;
+  final Function(String name, double stock, int unitId) onSave;
 
   const EditIngredientDialog({
     super.key,
@@ -133,7 +133,7 @@ class _EditIngredientDialogState extends State<EditIngredientDialog> {
               ? null
               : () {
                   final name = nameC.text.trim();
-                  final stock = int.tryParse(stockC.text) ?? 0;
+                  final stock = double.tryParse(stockC.text) ?? 0;
 
                   if (name.isEmpty || selectedUnitId == null) {
                     ScaffoldMessenger.of(context).showSnackBar(

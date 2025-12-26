@@ -4,6 +4,7 @@ import 'package:ingredient_management_app/features/menu/data/services/menu_servi
 import 'package:ingredient_management_app/features/transaction/data/services/transaction_service.dart';
 import 'package:ingredient_management_app/features/transaction/presentation/widgets/transaction_menu_item.dart';
 import 'package:ingredient_management_app/utils/currency_extension.dart';
+import 'package:ingredient_management_app/widgets/custom_app_bar.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav_handler.dart';
 import '../../../../widgets/custom_bottom_nav.dart';
 
@@ -115,8 +116,24 @@ class _TransactionPageState extends State<TransactionPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: const Color(0xff00C3FF),
-        title: const Text("Hitung", style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF00B3E6),
+        elevation: 0,
+        title: const Text(
+          "Hitung Pendapatan",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          CustomAppBar(
+            onRefresh: _loadMenus,
+            onLogout: () {
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/login',
+                (route) => false,
+              );
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<MenuModel>>(
         future: menusFuture,

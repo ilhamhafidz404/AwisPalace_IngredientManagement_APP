@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  static const String baseUrl = "http://localhost:8080";
+  static const String baseUrl = "http://alope.site:8080";
 
   // Configure Google Sign In
   static final GoogleSignIn _googleSignIn = GoogleSignIn(

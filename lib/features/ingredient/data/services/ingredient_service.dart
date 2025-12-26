@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/ingredient_model.dart';
 
 class IngredientService {
-  static const String baseUrl = "http://localhost:8080";
+  static const String baseUrl = "http://alope.site:8080";
 
   /// GET
   static Future<List<IngredientModel>> getIngredients() async {
@@ -40,7 +40,7 @@ class IngredientService {
   static Future<void> updateIngredient({
     required int id,
     required String name,
-    required int stock,
+    required double stock,
     required int unitId,
   }) async {
     final response = await http.put(
