@@ -22,7 +22,7 @@ class IngredientService {
   /// POST
   static Future<void> createIngredient({
     required String name,
-    required int stock,
+    required double stock,
     required int unitId,
   }) async {
     final response = await http.post(

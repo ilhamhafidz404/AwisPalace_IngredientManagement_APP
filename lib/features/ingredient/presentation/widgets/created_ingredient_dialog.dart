@@ -5,7 +5,7 @@ import '../../data/models/ingredient_model.dart';
 
 class CreateIngredientDialog extends StatefulWidget {
   final IngredientModel? ingredient;
-  final Function(String name, int stock, int unitId) onSubmit;
+  final Function(String name, double stock, int unitId) onSubmit;
 
   const CreateIngredientDialog({
     super.key,
@@ -26,6 +26,7 @@ class _CreateIngredientDialogState extends State<CreateIngredientDialog> {
   List<UnitModel> units = [];
   int? selectedUnitId;
   bool loadingUnit = true;
+  bool isSubmitting = false;
 
   @override
   void initState() {
@@ -77,13 +78,22 @@ class _CreateIngredientDialogState extends State<CreateIngredientDialog> {
 
                   const SizedBox(height: 12),
 
-                  /// STOCK
+                  /// STOCK (DOUBLE)
                   TextFormField(
                     controller: stockC,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: const InputDecoration(labelText: "Stok"),
-                    keyboardType: TextInputType.number,
-                    validator: (v) =>
-                        v == null || v.isEmpty ? "Wajib diisi" : null,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) {
+                        return "Wajib diisi";
+                      }
+                      if (double.tryParse(v) == null) {
+                        return "Harus berupa angka";
+                      }
+                      return null;
+                    },
                   ),
 
                   const SizedBox(height: 12),
@@ -101,27 +111,40 @@ class _CreateIngredientDialogState extends State<CreateIngredientDialog> {
                         )
                         .toList(),
                     onChanged: (v) => setState(() => selectedUnitId = v),
+                    validator: (v) => v == null ? "Pilih unit" : null,
                   ),
                 ],
               ),
             ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: isSubmitting ? null : () => Navigator.pop(context),
           child: const Text("Batal"),
         ),
         ElevatedButton(
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              widget.onSubmit(
-                nameC.text,
-                int.parse(stockC.text),
-                selectedUnitId!,
-              );
-              Navigator.pop(context);
-            }
-          },
-          child: const Text("Simpan"),
+          onPressed: isSubmitting
+              ? null
+              : () {
+                  if (!_formKey.currentState!.validate()) return;
+
+                  setState(() => isSubmitting = true);
+
+                  widget.onSubmit(
+                    nameC.text.trim(),
+                    double.parse(stockC.text),
+                    selectedUnitId!,
+                  );
+                },
+          child: isSubmitting
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text("Simpan"),
         ),
       ],
     );
