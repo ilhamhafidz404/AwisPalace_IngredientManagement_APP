@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ingredient_management_app/features/ingredient/data/helpers/format_stock.dart';
 import 'package:ingredient_management_app/features/ingredient/data/models/ingredient_model.dart';
 import 'package:ingredient_management_app/features/ingredient/data/services/ingredient_service.dart';
 import 'package:ingredient_management_app/features/ingredient/presentation/widgets/created_ingredient_dialog.dart';
@@ -34,6 +35,43 @@ class _IngredientPageState extends State<IngredientPage> {
     return stock <= 5;
   }
 
+  /// ================= CREATE ============
+  Future<void> _createIngredient(String name, double stock, int unitId) async {
+    try {
+      await IngredientService.createIngredient(
+        name: name,
+        stock: stock,
+        unitId: unitId,
+      );
+
+      if (!mounted) return;
+
+      Navigator.of(context, rootNavigator: true).pop();
+
+      setState(() {
+        ingredientFuture = IngredientService.getIngredients();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Bahan '$name' berhasil ditambahkan"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      Navigator.of(context, rootNavigator: true).pop();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Gagal menambahkan bahan: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   /// =================== EDIT ===================
   void editItem(IngredientModel item) {
     showDialog(
@@ -51,27 +89,34 @@ class _IngredientPageState extends State<IngredientPage> {
               unitId: unitId,
             );
 
+            // ignore: use_build_context_synchronously
             Navigator.pop(context);
+
+            // ignore: use_build_context_synchronously
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Bahan '$name' berhasil diperbarui"),
+                backgroundColor: Colors.green,
+              ),
+            );
 
             setState(() {
               ingredientFuture = IngredientService.getIngredients();
             });
           } catch (e) {
+            // ignore: use_build_context_synchronously
             Navigator.pop(context);
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text("Gagal update: $e")));
+            // ignore: use_build_context_synchronously
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Gagal update: $e"),
+                backgroundColor: Colors.red,
+              ),
+            );
           }
         },
       ),
     );
-  }
-
-  String formatStock(double stock) {
-    if (stock % 1 == 0) {
-      return stock.toInt().toString();
-    }
-    return stock.toStringAsFixed(1);
   }
 
   /// =================== DELETE ===================
@@ -92,13 +137,15 @@ class _IngredientPageState extends State<IngredientPage> {
         ingredientFuture = IngredientService.getIngredients();
       });
 
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Ingredient berhasil dihapus"),
+        SnackBar(
+          content: Text("Bahan '${item.name}' berhasil dihapus"),
           backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Gagal Delete: $e"),
@@ -177,10 +224,12 @@ class _IngredientPageState extends State<IngredientPage> {
                     width: 2,
                   ),
                   color: isLowStock(item.stock)
+                      // ignore: deprecated_member_use
                       ? Colors.red.withOpacity(0.05)
                       : Colors.white,
                   boxShadow: [
                     BoxShadow(
+                      // ignore: deprecated_member_use
                       color: Colors.black.withOpacity(0.05),
                       blurRadius: 6,
                       offset: const Offset(0, 3),
@@ -192,25 +241,6 @@ class _IngredientPageState extends State<IngredientPage> {
                     horizontal: 16,
                     vertical: 12,
                   ),
-
-                  /// ICON
-                  // leading: Container(
-                  //   width: 48,
-                  //   height: 48,
-                  //   decoration: BoxDecoration(
-                  //     color: isLowStock(item.stock)
-                  //         ? Colors.red.withOpacity(0.15)
-                  //         : Colors.blue.withOpacity(0.15),
-                  //     borderRadius: BorderRadius.circular(12),
-                  //   ),
-                  //   child: Icon(
-                  //     isLowStock(item.stock)
-                  //         ? Icons.warning_amber_rounded
-                  //         : Icons.inventory_2_outlined,
-                  //     color: isLowStock(item.stock) ? Colors.red : Colors.blue,
-                  //     size: 26,
-                  //   ),
-                  // ),
 
                   /// TITLE
                   title: Row(
@@ -227,25 +257,6 @@ class _IngredientPageState extends State<IngredientPage> {
                           ),
                         ),
                       ),
-                      // if (isLowStock(item.stock))
-                      //   Container(
-                      //     padding: const EdgeInsets.symmetric(
-                      //       horizontal: 8,
-                      //       vertical: 4,
-                      //     ),
-                      //     decoration: BoxDecoration(
-                      //       color: Colors.red,
-                      //       borderRadius: BorderRadius.circular(8),
-                      //     ),
-                      //     child: const Text(
-                      //       "LOW",
-                      //       style: TextStyle(
-                      //         color: Colors.white,
-                      //         fontSize: 11,
-                      //         fontWeight: FontWeight.bold,
-                      //       ),
-                      //     ),
-                      //   ),
                     ],
                   ),
 
@@ -296,15 +307,8 @@ class _IngredientPageState extends State<IngredientPage> {
           showDialog(
             context: context,
             builder: (_) => CreateIngredientDialog(
-              onSubmit: (name, stock, unitId) async {
-                await IngredientService.createIngredient(
-                  name: name,
-                  stock: stock,
-                  unitId: unitId,
-                );
-                setState(() {
-                  ingredientFuture = IngredientService.getIngredients();
-                });
+              onSubmit: (name, stock, unitId) {
+                _createIngredient(name, stock.toDouble(), unitId);
               },
             ),
           );
