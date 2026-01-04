@@ -6,6 +6,7 @@ import 'package:ingredient_management_app/features/transaction/presentation/widg
 import 'package:ingredient_management_app/utils/currency_extension.dart';
 import 'package:ingredient_management_app/widgets/custom_app_bar.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav_handler.dart';
+import 'package:ingredient_management_app/widgets/error_page.dart';
 import '../../../../widgets/custom_bottom_nav.dart';
 
 class TransactionPage extends StatefulWidget {
@@ -145,11 +146,14 @@ class _TransactionPageState extends State<TransactionPage> {
 
           // Error
           if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                "Gagal memuat menu\n${snapshot.error}",
-                textAlign: TextAlign.center,
-              ),
+            return ErrorPage(
+              title: "Gagal Memuat Menu Hitung",
+              error: snapshot.error,
+              onRetry: () {
+                setState(() {
+                  _loadMenus();
+                });
+              },
             );
           }
 

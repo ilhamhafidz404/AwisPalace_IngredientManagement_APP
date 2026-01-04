@@ -8,6 +8,7 @@ import 'package:ingredient_management_app/features/ingredient/presentation/widge
 import 'package:ingredient_management_app/widgets/custom_app_bar.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav_handler.dart';
+import 'package:ingredient_management_app/widgets/error_page.dart';
 
 class IngredientPage extends StatefulWidget {
   const IngredientPage({super.key});
@@ -189,11 +190,14 @@ class _IngredientPageState extends State<IngredientPage> {
           }
 
           if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                'Terjadi kesalahan:\n${snapshot.error}',
-                textAlign: TextAlign.center,
-              ),
+            return ErrorPage(
+              title: "Gagal Memuat Bahan",
+              error: snapshot.error,
+              onRetry: () {
+                setState(() {
+                  _loadIngredients();
+                });
+              },
             );
           }
 

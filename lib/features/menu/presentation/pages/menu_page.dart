@@ -7,6 +7,7 @@ import 'package:ingredient_management_app/features/menu/presentation/widgets/men
 import 'package:ingredient_management_app/utils/currency_extension.dart';
 import 'package:ingredient_management_app/widgets/custom_app_bar.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav_handler.dart';
+import 'package:ingredient_management_app/widgets/error_page.dart';
 import 'package:intl/intl.dart';
 import '../../../../widgets/custom_bottom_nav.dart';
 
@@ -161,42 +162,14 @@ class _MenuPageState extends State<MenuPage> {
 
           // Error
           if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 60, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    "Gagal memuat menu",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "${snapshot.error}",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _loadMenus();
-                      });
-                    },
-                    icon: const Icon(Icons.refresh),
-                    label: const Text("Coba Lagi"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xff00C3FF),
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
+            return ErrorPage(
+              title: "Gagal Memuat Menu",
+              error: snapshot.error,
+              onRetry: () {
+                setState(() {
+                  _loadMenus();
+                });
+              },
             );
           }
 

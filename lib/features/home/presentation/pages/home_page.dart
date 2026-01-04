@@ -12,6 +12,7 @@ import 'package:ingredient_management_app/utils/range_date_indonesian_style.dart
 import 'package:ingredient_management_app/widgets/custom_app_bar.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav_handler.dart';
+import 'package:ingredient_management_app/widgets/error_page.dart';
 import 'package:intl/intl.dart';
 
 /// ======================
@@ -429,23 +430,14 @@ class _HomePageState extends State<HomePage> {
           }
 
           if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 60, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    "Gagal memuat data\n${snapshot.error}",
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _loadDashboard,
-                    child: const Text("Coba Lagi"),
-                  ),
-                ],
-              ),
+            return ErrorPage(
+              title: "Gagal Memuat Dashboard",
+              error: snapshot.error,
+              onRetry: () {
+                setState(() {
+                  _loadDashboard();
+                });
+              },
             );
           }
 
