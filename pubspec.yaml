@@ -40,9 +40,15 @@ dependencies:
   intl: ^0.18.1
   shared_preferences: ^2.5.4
   fl_chart: ^0.69.0
-  
+  flutter_launcher_icons: ^0.13.1
+
   flutter:
     sdk: flutter
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/app_logo.png"
 
 dev_dependencies:
   flutter_test:
