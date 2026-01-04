@@ -22,6 +22,12 @@ class _IngredientPageState extends State<IngredientPage> {
 
   late Future<List<IngredientModel>> ingredientFuture;
 
+  Future<void> _onRefresh() async {
+    setState(() {
+      ingredientFuture = IngredientService.getIngredients();
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -207,99 +213,86 @@ class _IngredientPageState extends State<IngredientPage> {
             return const Center(child: Text("Belum ada data bahan"));
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: ingredients.length,
-            itemBuilder: (context, index) {
-              final item = ingredients[index];
+          return RefreshIndicator(
+            color: Colors.blue.shade700,
+            onRefresh: _onRefresh,
+            child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(12),
+              itemCount: ingredients.length,
+              itemBuilder: (context, index) {
+                final item = ingredients[index];
 
-              debugPrint(
-                'Stock ${item.name}: ${item.stock} (${item.stock.runtimeType})',
-              );
-
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isLowStock(item.stock)
-                        ? Colors.red
-                        : Colors.transparent,
-                    width: 2,
-                  ),
-                  color: isLowStock(item.stock)
-                      // ignore: deprecated_member_use
-                      ? Colors.red.withOpacity(0.05)
-                      : Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      // ignore: deprecated_member_use
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isLowStock(item.stock)
+                          ? Colors.red
+                          : Colors.transparent,
+                      width: 2,
                     ),
-                  ],
-                ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+                    color: isLowStock(item.stock)
+                        ? Colors.red.withOpacity(0.05)
+                        : Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
-
-                  /// TITLE
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          item.name,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: isLowStock(item.stock)
-                                ? Colors.red
-                                : Colors.black,
-                          ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    title: Text(
+                      item.name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: isLowStock(item.stock)
+                            ? Colors.red
+                            : Colors.black,
+                      ),
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(
+                        "Stok: ${formatStock(item.stock)} ${item.unitSymbol}",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isLowStock(item.stock)
+                              ? Colors.red.shade700
+                              : Colors.grey.shade700,
+                          fontWeight: isLowStock(item.stock)
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                         ),
                       ),
-                    ],
-                  ),
-
-                  /// SUBTITLE
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Text(
-                      "Stok: ${formatStock(item.stock)} ${item.unitSymbol}",
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isLowStock(item.stock)
-                            ? Colors.red.shade700
-                            : Colors.grey.shade700,
-                        fontWeight: isLowStock(item.stock)
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          color: Colors.blue,
+                          onPressed: () => editItem(item),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          color: Colors.red,
+                          onPressed: () => deleteItem(item),
+                        ),
+                      ],
                     ),
                   ),
-
-                  /// ACTION
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        color: Colors.blue,
-                        onPressed: () => editItem(item),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        color: Colors.red,
-                        onPressed: () => deleteItem(item),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           );
         },
       ),

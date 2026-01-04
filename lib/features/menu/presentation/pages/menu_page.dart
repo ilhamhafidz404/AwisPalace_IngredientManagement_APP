@@ -102,7 +102,6 @@ class _MenuPageState extends State<MenuPage> {
       MaterialPageRoute(builder: (_) => const MenuFormPage()),
     );
 
-    // Jika create berhasil (result == true), reload menu list
     if (result == true) {
       setState(() {
         _loadMenus();
@@ -201,6 +200,7 @@ class _MenuPageState extends State<MenuPage> {
           }
 
           return RefreshIndicator(
+            color: Colors.blue.shade700,
             onRefresh: () async {
               setState(() {
                 _loadMenus();

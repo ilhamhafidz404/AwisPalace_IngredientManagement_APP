@@ -22,12 +22,12 @@ class MenuCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Color(Colors.white.value),
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
 
-        /// ✅ NAVIGATE KE DETAIL
         onTap: () {
           Navigator.push(
             context,
