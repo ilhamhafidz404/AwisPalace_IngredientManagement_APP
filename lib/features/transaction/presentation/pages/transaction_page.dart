@@ -115,26 +115,11 @@ class _TransactionPageState extends State<TransactionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: const Color(0xFF00B3E6),
-        elevation: 0,
-        title: const Text(
-          "Hitung Pendapatan",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          CustomAppBar(
-            onRefresh: _loadMenus,
-            onLogout: () {
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/login',
-                (route) => false,
-              );
-            },
-          ),
-        ],
+      appBar: CustomAppBar(
+        title: 'Hitung Pendapatan',
+        onRefresh: _loadMenus,
+        onLogout: () =>
+            Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false),
       ),
       body: FutureBuilder<List<MenuModel>>(
         future: menusFuture,
@@ -236,7 +221,7 @@ class _TransactionPageState extends State<TransactionPage> {
                             : () => _processTransaction(menus),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xff00C3FF),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -251,10 +236,10 @@ class _TransactionPageState extends State<TransactionPage> {
                                 ),
                               )
                             : const Text(
-                                "Proses Transaksi",
+                                "Simpan",
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 16,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),

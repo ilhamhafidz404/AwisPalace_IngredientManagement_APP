@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ingredient_management_app/data/services/auth_service.dart';
 import 'package:ingredient_management_app/features/home/data/services/home_service.dart';
 import 'package:ingredient_management_app/features/home/presentation/widgets/dashboard_filter_card.dart';
 import 'package:ingredient_management_app/features/home/presentation/widgets/export_card.dart';
@@ -47,7 +48,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _initDefaultDate();
     _loadDashboard();
-    _checkLowStockIngredients();
+    // _checkLowStockIngredients();
   }
 
   /// ======================
@@ -73,6 +74,8 @@ class _HomePageState extends State<HomePage> {
       startDate: startDate,
       endDate: endDate,
     );
+
+    _checkLowStockIngredients();
   }
 
   /// ======================
@@ -189,22 +192,11 @@ class _HomePageState extends State<HomePage> {
       /// ======================
       /// APP BAR
       /// ======================
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF00B3E6),
-        title: const Text(
-          'Dashboard',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          CustomAppBar(
-            onRefresh: _loadDashboard,
-            onLogout: () => Navigator.pushNamedAndRemoveUntil(
-              context,
-              '/login',
-              (_) => false,
-            ),
-          ),
-        ],
+      appBar: CustomAppBar(
+        title: 'Dashboard',
+        onRefresh: _loadDashboard,
+        onLogout: () =>
+            Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false),
       ),
 
       /// ======================
@@ -229,49 +221,60 @@ class _HomePageState extends State<HomePage> {
           final menus = data['menus'] as List;
           final ingredients = data['ingredients'] as List;
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                DashboardFilterCard(
-                  startDate: startDate,
-                  endDate: endDate,
-                  onPickDate: _pickDateRange,
-                  onReset: _isDefaultRange ? null : _resetFilter,
+          return FutureBuilder<String?>(
+            future: AuthService.getUserEmail(),
+            builder: (context, emailSnapshot) {
+              final userEmail = emailSnapshot.data;
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    DashboardFilterCard(
+                      startDate: startDate,
+                      endDate: endDate,
+                      onPickDate: _pickDateRange,
+                      onReset: _isDefaultRange ? null : _resetFilter,
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // CHECK EMAIL
+                    if (userEmail == 'ilhammhafidzz@gmail.com' ||
+                        userEmail == 'rizal08crb@gmail.com') ...[
+                      ExportCard(
+                        title: 'Export Transaksi',
+                        subtitle: 'Download laporan transaksi ke Excel',
+                        icon: Icons.file_download_outlined,
+                        iconColor: Colors.blue,
+                        isLoading: _isExporting,
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => ExportTransactionDialog(
+                              onExport: _handleExport,
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+
+                    MenuSoldSection(
+                      mode: menuViewMode,
+                      menus: menus,
+                      onChangeMode: (m) => setState(() => menuViewMode = m),
+                      listView: ProductSection(menus: menus),
+                      chartView: MenuBarChart(menus: menus),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    StockUsedSection(ingredients: ingredients),
+                  ],
                 ),
-
-                const SizedBox(height: 24),
-
-                ExportCard(
-                  title: 'Export Transaksi',
-                  subtitle: 'Download laporan transaksi ke Excel',
-                  icon: Icons.file_download_outlined,
-                  iconColor: Colors.blue,
-                  isLoading: _isExporting,
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (_) =>
-                          ExportTransactionDialog(onExport: _handleExport),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 24),
-
-                MenuSoldSection(
-                  mode: menuViewMode,
-                  menus: menus,
-                  onChangeMode: (m) => setState(() => menuViewMode = m),
-                  listView: ProductSection(menus: menus),
-                  chartView: MenuBarChart(menus: menus),
-                ),
-
-                const SizedBox(height: 24),
-
-                StockUsedSection(ingredients: ingredients),
-              ],
-            ),
+              );
+            },
           );
         },
       ),

@@ -36,20 +36,23 @@ class MenuSoldSection extends StatelessWidget {
               ],
               onPressed: (i) =>
                   onChangeMode(i == 0 ? MenuViewMode.list : MenuViewMode.chart),
-              color: Colors.grey,
-              selectedColor: Colors.white,
-              fillColor: const Color(0xFF0088CC),
-              borderColor: Colors.grey.shade400,
-              selectedBorderColor: const Color(0xFF0088CC),
-              borderRadius: BorderRadius.circular(8),
+              color: Colors.grey[600], // Warna icon tidak aktif
+              selectedColor: const Color(0xFF00B3E6), // Warna icon aktif
+              fillColor: const Color(
+                0xFF00B3E6,
+              ).withOpacity(0.1), // Background aktif
+              borderColor: Colors.grey.shade300,
+              selectedBorderColor: const Color(0xFF00B3E6).withOpacity(0.3),
+              borderRadius: BorderRadius.circular(12),
+              borderWidth: 1.5,
               children: const [
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
-                  child: Icon(Icons.list),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Icon(Icons.list, size: 24),
                 ),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
-                  child: Icon(Icons.bar_chart),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Icon(Icons.bar_chart, size: 24),
                 ),
               ],
             ),

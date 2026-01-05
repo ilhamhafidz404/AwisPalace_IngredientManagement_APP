@@ -21,20 +21,20 @@ class _SplashScreenState extends State<SplashScreen> {
     if (mounted) {
       final isLoggedIn = await AuthService.isLoggedIn();
 
-      if (isLoggedIn) {
-        // Verify token
-        final isValid = await AuthService.verifyToken();
+      // if (isLoggedIn) {
+      //   // Verify token
+      //   final isValid = await AuthService.verifyToken();
 
-        if (isValid) {
-          Navigator.pushReplacementNamed(context, '/home');
-        } else {
-          // Token invalid, logout and go to login
-          await AuthService.signOut();
-          Navigator.pushReplacementNamed(context, '/login');
-        }
-      } else {
-        Navigator.pushReplacementNamed(context, '/login');
-      }
+      //   if (isValid) {
+      //     Navigator.pushReplacementNamed(context, '/home');
+      //   } else {
+      //     // Token invalid, logout and go to login
+      //     await AuthService.signOut();
+      //     Navigator.pushReplacementNamed(context, '/login');
+      //   }
+      // } else {
+      //   Navigator.pushReplacementNamed(context, '/login');
+      // }
     }
   }
 

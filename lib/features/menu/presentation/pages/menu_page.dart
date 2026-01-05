@@ -129,26 +129,11 @@ class _MenuPageState extends State<MenuPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: const Color(0xFF00B3E6),
-        elevation: 0,
-        title: const Text(
-          "Kelola Menu",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          CustomAppBar(
-            onRefresh: _loadMenus,
-            onLogout: () {
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/login',
-                (route) => false,
-              );
-            },
-          ),
-        ],
+      appBar: CustomAppBar(
+        title: 'Kelola Menu',
+        onRefresh: _loadMenus,
+        onLogout: () =>
+            Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false),
       ),
 
       body: FutureBuilder<List<MenuModel>>(

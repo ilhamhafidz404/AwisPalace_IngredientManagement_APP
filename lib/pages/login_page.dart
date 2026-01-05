@@ -21,42 +21,54 @@ class _LoginPageState extends State<LoginPage> {
     // Navigator.pushReplacementNamed(context, "/");
 
     try {
-      final result = await AuthService.signInWithGoogle();
+      final user = await AuthService.signInWithGoogle();
 
-      if (result != null && mounted) {
+      if (user == null) {
+        // User membatalkan login
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Login dibatalkan')));
+        return;
+      }
+
+      // Cek apakah email diizinkan
+      if (AuthService.isEmailAllowed(user.email)) {
+        // Email diizinkan, navigate ke home
+        print('✅ Email diizinkan: ${user.email}');
+
+        // Tampilkan pesan selamat datang dengan nama atau email
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white),
-                const SizedBox(width: 10),
-                Text('Welcome, ${result['data']['user']['name']}!'),
-              ],
+            content: Text(
+              'Selamat Datang, ${user.displayName ?? user.email}!', // Hapus const
             ),
             backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
           ),
         );
 
-        // Navigate to home
-        Navigator.pushReplacementNamed(context, "/home");
-      }
-    } catch (e) {
-      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/');
+      } else {
+        // Email tidak diizinkan
+        print('❌ Email tidak diizinkan: ${user.email}');
+
+        // Sign out otomatis
+        await AuthService.signOut();
+
+        // Tampilkan pesan error
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error, color: Colors.white),
-                const SizedBox(width: 10),
-                Expanded(child: Text('Login failed: ${e.toString()}')),
-              ],
-            ),
+            content: Text('Email ${user.email} tidak memiliki akses'),
             backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
+    } catch (e) {
+      print('Login error: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login gagal: $e')));
     } finally {
       if (mounted) {
         setState(() {

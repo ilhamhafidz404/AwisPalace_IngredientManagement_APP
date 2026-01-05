@@ -1,20 +1,20 @@
-import 'dart:convert';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  static const String baseUrl = "http://alope.site:8080";
-
-  // Configure Google Sign In
+  // Configure Google Sign In (TANPA serverClientId)
   static final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
   );
 
-  /// Sign in with Google and authenticate with backend
-  static Future<Map<String, dynamic>?> signInWithGoogle() async {
+  /// Sign in with Google (Frontend only)
+  /// Sign in with Google (Frontend only) - Always show account picker
+  static Future<GoogleSignInAccount?> signInWithGoogle() async {
     try {
-      // Trigger Google Sign In
+      // TAMBAHKAN INI: Sign out dulu untuk memaksa pemilihan akun
+      await _googleSignIn.signOut();
+
+      // Trigger Google Sign In (akan selalu muncul dialog pemilihan akun)
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
@@ -22,44 +22,15 @@ class AuthService {
         return null;
       }
 
-      // Get Google authentication
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
-      // Get ID token
-      final String? idToken = googleAuth.idToken;
-
-      if (idToken == null) {
-        throw Exception('Failed to get ID token from Google');
-      }
-
       print('Google Sign In successful');
       print('Email: ${googleUser.email}');
       print('Name: ${googleUser.displayName}');
+      print('Photo: ${googleUser.photoUrl}');
 
-      // Send ID token to backend for verification
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/google'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'id_token': idToken,
-          'email': googleUser.email,
-          'name': googleUser.displayName,
-          'photo_url': googleUser.photoUrl,
-        }),
-      );
+      // Save user data to local storage
+      await _saveUserData(googleUser);
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-
-        // Save user data and token to local storage
-        await _saveUserData(data);
-
-        return data;
-      } else {
-        final error = jsonDecode(response.body);
-        throw Exception(error['message'] ?? 'Authentication failed');
-      }
+      return googleUser;
     } catch (e) {
       print("ERROR LOGIN GOOGLE: $e");
       rethrow;
@@ -67,17 +38,13 @@ class AuthService {
   }
 
   /// Save user data to SharedPreferences
-  static Future<void> _saveUserData(Map<String, dynamic> data) async {
+  static Future<void> _saveUserData(GoogleSignInAccount user) async {
     final prefs = await SharedPreferences.getInstance();
 
-    await prefs.setString('token', data['data']['token'] ?? '');
-    await prefs.setString('user_id', data['data']['user']['id'].toString());
-    await prefs.setString('user_name', data['data']['user']['name'] ?? '');
-    await prefs.setString('user_email', data['data']['user']['email'] ?? '');
-    await prefs.setString(
-      'user_photo',
-      data['data']['user']['photo_url'] ?? '',
-    );
+    await prefs.setString('user_id', user.id);
+    await prefs.setString('user_name', user.displayName ?? '');
+    await prefs.setString('user_email', user.email);
+    await prefs.setString('user_photo', user.photoUrl ?? '');
     await prefs.setBool('is_logged_in', true);
   }
 
@@ -86,7 +53,6 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
 
     return {
-      'token': prefs.getString('token'),
       'user_id': prefs.getString('user_id'),
       'user_name': prefs.getString('user_name'),
       'user_email': prefs.getString('user_email'),
@@ -100,10 +66,10 @@ class AuthService {
     return prefs.getBool('is_logged_in') ?? false;
   }
 
-  /// Get saved token
-  static Future<String?> getToken() async {
+  /// Get saved email
+  static Future<String?> getUserEmail() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
+    return prefs.getString('user_email');
   }
 
   /// Sign out
@@ -123,56 +89,20 @@ class AuthService {
     }
   }
 
-  /// Verify token with backend
-  static Future<bool> verifyToken() async {
-    try {
-      final token = await getToken();
+  /// Check if email is allowed (contoh pengecekan email)
+  static bool isEmailAllowed(String email) {
+    // Daftar email yang diizinkan
+    final allowedEmails = [
+      'xxspanzie@gmail.com',
+      'ilhammhafidzz@gmail.com',
+      '20220810042@uniku.ac.id',
+      '20220810039@uniku.ac.id',
+      '20220810030@uniku.ac.id',
+    ];
 
-      if (token == null || token.isEmpty) {
-        return false;
-      }
+    // Atau cek domain
+    // return email.endsWith('@example.com');
 
-      final response = await http.get(
-        Uri.parse('$baseUrl/auth/verify'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-
-      return response.statusCode == 200;
-    } catch (e) {
-      print("ERROR VERIFY TOKEN: $e");
-      return false;
-    }
-  }
-
-  /// Refresh token
-  static Future<String?> refreshToken() async {
-    try {
-      final token = await getToken();
-
-      if (token == null || token.isEmpty) {
-        return null;
-      }
-
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/refresh'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final newToken = data['data']['token'];
-
-        // Save new token
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', newToken);
-
-        return newToken;
-      }
-
-      return null;
-    } catch (e) {
-      print("ERROR REFRESH TOKEN: $e");
-      return null;
-    }
+    return allowedEmails.contains(email.toLowerCase());
   }
 }
