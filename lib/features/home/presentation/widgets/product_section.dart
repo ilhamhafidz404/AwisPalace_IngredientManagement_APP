@@ -37,7 +37,7 @@ class _ProductSectionState extends State<ProductSection> {
             return ProductCard(
               imagePath: "http://alope.site:8080/uploads/${item["image"]}",
               title: item['name'],
-              subtitle: "Terjual: ${item['quantity']} Porsi",
+              subtitle: "${item['quantity']} Porsi",
             );
           },
         ),
@@ -48,6 +48,8 @@ class _ProductSectionState extends State<ProductSection> {
         if (widget.menus.length > 3)
           visibleCount < widget.menus.length
               ? CustomButton(
+                  isOutline: true,
+                  textColor: Color(0xFF00B3E6),
                   label: "Lihat lebih banyak",
                   onPressed: () {
                     setState(() {
@@ -56,6 +58,8 @@ class _ProductSectionState extends State<ProductSection> {
                   },
                 )
               : CustomButton(
+                  isOutline: true,
+                  textColor: Color(0xFF00B3E6),
                   label: "Lihat lebih sedikit",
                   onPressed: () {
                     setState(() {

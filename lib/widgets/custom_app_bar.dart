@@ -28,6 +28,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        automaticallyImplyLeading: false,
         title: Text(
           title,
           style: const TextStyle(
@@ -58,31 +59,30 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             },
             itemBuilder: (context) => [
               if (onRefresh != null)
+                // const PopupMenuItem(
+                //   value: 'refresh',
+                //   child: Row(
+                //     children: [
+                //       Icon(Icons.refresh, size: 18),
+                //       SizedBox(width: 8),
+                //       Text("Refresh"),
+                //     ],
+                //   ),
+                // ),
                 const PopupMenuItem(
-                  value: 'refresh',
+                  value: 'about',
                   child: Row(
                     children: [
-                      Icon(Icons.refresh, size: 18),
+                      Icon(
+                        Icons.info_outline,
+                        size: 18,
+                        color: Color(0xFF00B3E6),
+                      ),
                       SizedBox(width: 8),
-                      Text("Refresh"),
+                      Text("Tentang Aplikasi"),
                     ],
                   ),
                 ),
-
-              const PopupMenuItem(
-                value: 'about',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      size: 18,
-                      color: Color(0xFF00B3E6),
-                    ),
-                    SizedBox(width: 8),
-                    Text("Tentang Aplikasi"),
-                  ],
-                ),
-              ),
 
               if (extraItems != null) ...extraItems!,
 

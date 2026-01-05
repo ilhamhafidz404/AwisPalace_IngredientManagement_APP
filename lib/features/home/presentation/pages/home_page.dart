@@ -15,6 +15,7 @@ import 'package:ingredient_management_app/widgets/custom_app_bar.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav_handler.dart';
 import 'package:ingredient_management_app/widgets/error_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// ======================
 /// ENUM VIEW MODE
@@ -27,6 +28,9 @@ class HomePage extends StatefulWidget {
   @override
   State<HomePage> createState() => _HomePageState();
 }
+
+const String lowStockAlertKey = 'low_stock_alert_last_closed';
+const Duration lowStockCooldown = Duration(minutes: 5);
 
 class _HomePageState extends State<HomePage> {
   int currentIndex = 0;
@@ -54,12 +58,15 @@ class _HomePageState extends State<HomePage> {
   /// ======================
   /// INIT DEFAULT DATE
   /// ======================
+  /// ======================
+  /// INIT DEFAULT DATE
+  /// ======================
   void _initDefaultDate() {
     final now = DateTime.now();
-    final weekday = now.weekday;
 
-    _defaultStartDate = DateTime(now.year, now.month, now.day - (weekday - 1));
-    _defaultEndDate = _defaultStartDate.add(const Duration(days: 6));
+    // Default: 7 hari terakhir
+    _defaultEndDate = DateTime(now.year, now.month, now.day);
+    _defaultStartDate = _defaultEndDate.subtract(const Duration(days: 6));
 
     startDate = _defaultStartDate;
     endDate = _defaultEndDate;
@@ -81,6 +88,9 @@ class _HomePageState extends State<HomePage> {
   /// ======================
   /// DATE RANGE PICKER
   /// ======================
+  /// ======================
+  /// DATE RANGE PICKER
+  /// ======================
   Future<void> _pickDateRange() async {
     final now = DateTime.now();
 
@@ -89,7 +99,6 @@ class _HomePageState extends State<HomePage> {
       firstDate: DateTime(2024),
       lastDate: now,
       initialDateRange: DateTimeRange(start: startDate, end: endDate),
-
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -132,8 +141,23 @@ class _HomePageState extends State<HomePage> {
   /// ======================
   /// LOW STOCK CHECK
   /// ======================
+
   Future<void> _checkLowStockIngredients() async {
-    if (_lowStockAlertShown) return;
+    final prefs = await SharedPreferences.getInstance();
+
+    final lastClosedMillis = prefs.getInt(lowStockAlertKey);
+    if (lastClosedMillis != null) {
+      final lastClosedTime = DateTime.fromMillisecondsSinceEpoch(
+        lastClosedMillis,
+      );
+
+      final diff = DateTime.now().difference(lastClosedTime);
+
+      // ⛔ Jangan tampilkan jika masih dalam cooldown 5 menit
+      if (diff < lowStockCooldown) {
+        return;
+      }
+    }
 
     final ingredients = await IngredientService.getIngredients();
     final lowStockItems = ingredients
@@ -142,13 +166,21 @@ class _HomePageState extends State<HomePage> {
         .toList();
 
     if (lowStockItems.isNotEmpty) {
-      _lowStockAlertShown = true;
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        showDialog(
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (_) => LowStockAlertDialog(items: lowStockItems),
+          builder: (_) => LowStockAlertDialog(
+            items: lowStockItems,
+            onClose: () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setInt(
+                lowStockAlertKey,
+                DateTime.now().millisecondsSinceEpoch,
+              );
+              Navigator.pop(context);
+            },
+          ),
         );
       });
     }
@@ -241,7 +273,9 @@ class _HomePageState extends State<HomePage> {
 
                     // CHECK EMAIL
                     if (userEmail == 'ilhammhafidzz@gmail.com' ||
-                        userEmail == 'rizal08crb@gmail.com') ...[
+                        userEmail == 'rizal08crb@gmail.com' ||
+                        userEmail == 'fitrihandayani556677@gmail.com' ||
+                        userEmail == 'firdanfauzan5@gmail.com') ...[
                       ExportCard(
                         title: 'Export Transaksi',
                         subtitle: 'Download laporan transaksi ke Excel',

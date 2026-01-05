@@ -49,13 +49,28 @@ class _CreateIngredientDialogState extends State<CreateIngredientDialog> {
     setState(() => loadingUnit = false);
   }
 
+  OutlineInputBorder _defaultBorder() {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+      borderSide: const BorderSide(color: Colors.grey),
+    );
+  }
+
+  OutlineInputBorder _focusedBorder() {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+      borderSide: const BorderSide(
+        color: Color(0xFF1976D2), // Blue 700
+        width: 2,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      title: Text(
-        widget.ingredient == null ? "Tambah Ingredient" : "Edit Ingredient",
-      ),
+      title: Text(widget.ingredient == null ? "Tambah Bahan" : "Edit Bahan"),
       content: loadingUnit
           ? const SizedBox(
               height: 80,
@@ -69,8 +84,14 @@ class _CreateIngredientDialogState extends State<CreateIngredientDialog> {
                   /// NAME
                   TextFormField(
                     controller: nameC,
-                    decoration: const InputDecoration(
-                      labelText: "Nama Ingredient",
+                    decoration: InputDecoration(
+                      labelText: "Nama Bahan",
+                      enabledBorder: _defaultBorder(),
+                      focusedBorder: _focusedBorder(),
+                      floatingLabelStyle: const TextStyle(
+                        color: Color(0xFF1976D2),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     validator: (v) =>
                         v == null || v.isEmpty ? "Wajib diisi" : null,
@@ -78,13 +99,21 @@ class _CreateIngredientDialogState extends State<CreateIngredientDialog> {
 
                   const SizedBox(height: 12),
 
-                  /// STOCK (DOUBLE)
+                  /// STOCK
                   TextFormField(
                     controller: stockC,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
-                    decoration: const InputDecoration(labelText: "Stok"),
+                    decoration: InputDecoration(
+                      labelText: "Stok",
+                      enabledBorder: _defaultBorder(),
+                      focusedBorder: _focusedBorder(),
+                      floatingLabelStyle: const TextStyle(
+                        color: Color(0xFF1976D2),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     validator: (v) {
                       if (v == null || v.isEmpty) {
                         return "Wajib diisi";
@@ -101,7 +130,15 @@ class _CreateIngredientDialogState extends State<CreateIngredientDialog> {
                   /// UNIT
                   DropdownButtonFormField<int>(
                     value: selectedUnitId,
-                    decoration: const InputDecoration(labelText: "Unit"),
+                    decoration: InputDecoration(
+                      labelText: "Unit",
+                      enabledBorder: _defaultBorder(),
+                      focusedBorder: _focusedBorder(),
+                      floatingLabelStyle: const TextStyle(
+                        color: Color(0xFF1976D2),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     items: units
                         .map(
                           (u) => DropdownMenuItem(
@@ -119,7 +156,7 @@ class _CreateIngredientDialogState extends State<CreateIngredientDialog> {
       actions: [
         TextButton(
           onPressed: isSubmitting ? null : () => Navigator.pop(context),
-          child: const Text("Batal"),
+          child: const Text("Batal", style: TextStyle(color: Colors.black)),
         ),
         ElevatedButton(
           onPressed: isSubmitting
@@ -135,6 +172,13 @@ class _CreateIngredientDialogState extends State<CreateIngredientDialog> {
                     selectedUnitId!,
                   );
                 },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF00B3E6),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
           child: isSubmitting
               ? const SizedBox(
                   width: 18,

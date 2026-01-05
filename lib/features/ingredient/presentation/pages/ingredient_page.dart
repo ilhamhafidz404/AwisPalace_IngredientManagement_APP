@@ -4,7 +4,6 @@ import 'package:ingredient_management_app/features/ingredient/data/models/ingred
 import 'package:ingredient_management_app/features/ingredient/data/services/ingredient_service.dart';
 import 'package:ingredient_management_app/features/ingredient/presentation/widgets/created_ingredient_dialog.dart';
 import 'package:ingredient_management_app/features/ingredient/presentation/widgets/delete_ingredient_dialog.dart';
-import 'package:ingredient_management_app/features/ingredient/presentation/widgets/edit_ingredient_dialog.dart';
 import 'package:ingredient_management_app/widgets/custom_app_bar.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav.dart';
 import 'package:ingredient_management_app/widgets/custom_bottom_nav_handler.dart';
@@ -83,11 +82,9 @@ class _IngredientPageState extends State<IngredientPage> {
   void editItem(IngredientModel item) {
     showDialog(
       context: context,
-      builder: (_) => EditIngredientDialog(
-        initialName: item.name,
-        initialStock: item.stock,
-        initialUnitId: item.unitId,
-        onSave: (name, stock, unitId) async {
+      builder: (_) => CreateIngredientDialog(
+        ingredient: item,
+        onSubmit: (name, stock, unitId) async {
           try {
             await IngredientService.updateIngredient(
               id: item.id,
@@ -96,10 +93,9 @@ class _IngredientPageState extends State<IngredientPage> {
               unitId: unitId,
             );
 
-            // ignore: use_build_context_synchronously
+            if (!mounted) return;
             Navigator.pop(context);
 
-            // ignore: use_build_context_synchronously
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text("Bahan '$name' berhasil diperbarui"),
@@ -111,9 +107,9 @@ class _IngredientPageState extends State<IngredientPage> {
               ingredientFuture = IngredientService.getIngredients();
             });
           } catch (e) {
-            // ignore: use_build_context_synchronously
+            if (!mounted) return;
             Navigator.pop(context);
-            // ignore: use_build_context_synchronously
+
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text("Gagal update: $e"),

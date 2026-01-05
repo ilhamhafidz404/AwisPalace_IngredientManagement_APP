@@ -38,9 +38,7 @@ class MenuSoldSection extends StatelessWidget {
                   onChangeMode(i == 0 ? MenuViewMode.list : MenuViewMode.chart),
               color: Colors.grey[600], // Warna icon tidak aktif
               selectedColor: const Color(0xFF00B3E6), // Warna icon aktif
-              fillColor: const Color(
-                0xFF00B3E6,
-              ).withOpacity(0.1), // Background aktif
+              fillColor: const Color(0xFF00B3E6).withOpacity(0.1),
               borderColor: Colors.grey.shade300,
               selectedBorderColor: const Color(0xFF00B3E6).withOpacity(0.3),
               borderRadius: BorderRadius.circular(12),

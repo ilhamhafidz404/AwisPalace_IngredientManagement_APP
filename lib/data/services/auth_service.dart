@@ -7,18 +7,13 @@ class AuthService {
     scopes: ['email', 'profile'],
   );
 
-  /// Sign in with Google (Frontend only)
-  /// Sign in with Google (Frontend only) - Always show account picker
   static Future<GoogleSignInAccount?> signInWithGoogle() async {
     try {
-      // TAMBAHKAN INI: Sign out dulu untuk memaksa pemilihan akun
       await _googleSignIn.signOut();
 
-      // Trigger Google Sign In (akan selalu muncul dialog pemilihan akun)
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
-        // User cancelled the sign-in
         return null;
       }
 
@@ -27,7 +22,6 @@ class AuthService {
       print('Name: ${googleUser.displayName}');
       print('Photo: ${googleUser.photoUrl}');
 
-      // Save user data to local storage
       await _saveUserData(googleUser);
 
       return googleUser;
@@ -95,6 +89,9 @@ class AuthService {
     final allowedEmails = [
       'xxspanzie@gmail.com',
       'ilhammhafidzz@gmail.com',
+      'rizal08crb@gmail.com',
+      'fitrihandayani556677@gmail.com',
+      'firdanfauzan5@gmail.com',
       '20220810042@uniku.ac.id',
       '20220810039@uniku.ac.id',
       '20220810030@uniku.ac.id',

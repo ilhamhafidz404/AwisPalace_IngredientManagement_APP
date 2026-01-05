@@ -130,7 +130,8 @@ class _MenuFormPageState extends State<MenuFormPage> {
       text: widget.menu != null ? widget.menu!.price.toString() : "",
     );
     descC = TextEditingController(text: widget.menu?.description ?? "");
-    _currentImageUrl = widget.menu?.image;
+
+    _currentImageUrl = _resolveImageUrl(widget.menu?.image);
   }
 
   void _initializeIngredients() {
@@ -148,6 +149,17 @@ class _MenuFormPageState extends State<MenuFormPage> {
         );
       }).toList();
     }
+  }
+
+  //
+  String? _resolveImageUrl(String? image) {
+    if (image == null || image.isEmpty) return null;
+
+    if (image.startsWith('http')) {
+      return image;
+    }
+
+    return "http://alope.site:8080/uploads/$image";
   }
 
   // ==================== DATA LOADING ====================
@@ -476,7 +488,6 @@ class _MenuFormPageState extends State<MenuFormPage> {
   }
 
   Widget _getImageWidget() {
-    // Prioritas: file baru yang dipilih > URL dari server > placeholder
     if (_imageFile != null) {
       return _buildLocalImage(_imageFile!.path);
     }
@@ -516,6 +527,8 @@ class _MenuFormPageState extends State<MenuFormPage> {
   }
 
   Widget _buildNetworkImage(String url) {
+    debugPrint("LOAD IMAGE URL: $url");
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: Image.network(
@@ -527,13 +540,16 @@ class _MenuFormPageState extends State<MenuFormPage> {
             child: CircularProgressIndicator(color: primaryColor),
           );
         },
-        errorBuilder: (context, error, stackTrace) => const Center(
-          child: Icon(
-            Icons.image_not_supported,
-            size: 50,
-            color: Colors.redAccent,
-          ),
-        ),
+        errorBuilder: (context, error, stackTrace) {
+          debugPrint("IMAGE ERROR: $error");
+          return const Center(
+            child: Icon(
+              Icons.image_not_supported,
+              size: 50,
+              color: Colors.redAccent,
+            ),
+          );
+        },
       ),
     );
   }
@@ -555,7 +571,9 @@ class _MenuFormPageState extends State<MenuFormPage> {
       onPressed: _pickImage,
       icon: const Icon(Icons.cloud_upload_outlined, color: Colors.white),
       label: Text(
-        _imageFile != null ? "Ganti Gambar" : "Upload Gambar",
+        (_imageFile != null || _currentImageUrl != null)
+            ? "Ganti Gambar"
+            : "Upload Gambar",
         style: const TextStyle(color: Colors.white),
       ),
       style: ElevatedButton.styleFrom(
